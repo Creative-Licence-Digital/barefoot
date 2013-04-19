@@ -2,7 +2,7 @@
   "name": "Barefoot",
   "version": "0.0.1",
   "description": "Barefoot is a utility-belt library for Node for asynchronous functions manipulation",
-  "main": "barefoot.coffee",
+  "main": "barefoot.litcoffee",
   "repository": {
     "type": "git",
     "url": "git://github.com/Creative-Licence/Barefoot.git"
