@@ -6,6 +6,11 @@ Module dependencies
 -------------------
     lateral = require 'lateral'
 
+
+
+Let's get started
+------------------
+
 We declare an object to contain all the methods we want to export from this  module
 
     methods = {}
@@ -13,6 +18,7 @@ We declare an object to contain all the methods we want to export from this  mod
 
 
 **toDictionary** 
+
 Transform an array of object into a dictionary based on the property passed as a second param
 
     methods.toDictionary = (array, prop) ->
@@ -24,6 +30,7 @@ Transform an array of object into a dictionary based on the property passed as a
 
 
 **amap**
+
 Asynchronous map 
 Use the awesome **lateral** module to do the job
 
@@ -47,6 +54,7 @@ Use the awesome **lateral** module to do the job
           done errors, results
 
 **chain**
+
 Chain aynschronous methods with signature (params, done) -> done(err, result)
 Stop if one of the method has an error in the callback
 
