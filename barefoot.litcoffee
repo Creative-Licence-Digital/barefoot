@@ -77,7 +77,7 @@ Stop if one of the method has an error in the callback
             if err?
               done err, res
             else
-              methods.chain(funcs.slice(1, funcs.length))(params, done, err)
+              methods.chain(funcs.slice(1, funcs.length))(res, done, err)
 
 
 
