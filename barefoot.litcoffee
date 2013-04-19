@@ -45,8 +45,7 @@ Provides a function which test if parameters object has certain properties
 Asynchronous map 
 Use the awesome **lateral** module to do the job
 
-    methods.amap = (func, nbProcesses) ->
-      nbProcesses ?= 1
+    methods.amap = (func, nbProcesses = 1) ->
       (array, done) ->
         results = []
         errors = null
