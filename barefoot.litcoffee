@@ -29,6 +29,17 @@ Transform an array of object into a dictionary based on the property passed as a
 
 
 
+**has**
+
+Provides a function which test if parameters object has certain properties
+
+    methods.has = (parameters) ->
+      (params, done) ->
+        ok = true
+        ok = (ok and _.has(params,par)) for par in parameters
+        done (if ok then null else new Error("Missing Parameters")), ok
+
+
 **amap**
 
 Asynchronous map 
