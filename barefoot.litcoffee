@@ -36,7 +36,7 @@ Provides a function which test if parameters object has certain properties
     methods.has = (parameters) ->
       (params, done) ->
         ok = true
-        ok = (ok and _.has(params,par)) for par in parameters
+        ok = (ok and params? and params.par?) for par in parameters
         done (if ok then null else new Error("Missing Parameters")), ok
 
 
