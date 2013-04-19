@@ -4,6 +4,8 @@ Barefoot
    
 Module dependencies
 -------------------
+
+
     lateral = require 'lateral'
 
 
