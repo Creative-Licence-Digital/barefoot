@@ -11,5 +11,8 @@
     "url": "git://github.com/Creative-Licence/Barefoot.git"
   },
   "author": "matTtam",
-  "license": "BSD"
+  "license": "BSD",
+  "dependencies": {
+    "lateral": "~2.3.0"
+  }
 }
