@@ -45,8 +45,7 @@ methods.has = (parameters) ->
 Asynchronous map 
 Use the awesome **lateral** module to do the job
 ```coffeescript
-methods.amap = (func, nbProcesses) ->
-  nbProcesses ?= 1
+methods.amap = (func, nbProcesses = 1) ->
   (array, done) ->
     results = []
     errors = null
@@ -69,15 +68,16 @@ methods.amap = (func, nbProcesses) ->
 Chain aynschronous methods with signature (params, done) -> done(err, result)
 Stop if one of the method has an error in the callback
 ```coffeescript
-global.Array.prototype.chain = (params, done, err) ->
-  if @.length == 0
-    done err, params
-  else
-    @[0] params, (err, res) =>
-      if err?
-        done err, res
-      else
-        @.slice(1, @.length).chain(res, done, err)
+methods.chain = (funcs) -> 
+  (params, done, err) ->
+    if funcs.length == 0
+      done err, params
+    else
+      funcs[0] params, (err, res) =>
+        if err?
+          done err, res
+        else
+          methods.chain(funcs.slice(1, funcs.length))(params, done, err)
 ```
 
 
