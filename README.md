@@ -12,62 +12,62 @@ Let's get started
 ------------------
 
 We declare an object to contain all the methods we want to export from this  module
-
-    methods = {}
-
+```coffeescript
+methods = {}
+```
 
 
 **toDictionary** 
 
 Transform an array of object into a dictionary based on the property passed as a second param
-
-    methods.toDictionary = (array, prop) ->
-      dictionary = {}
-      array.forEach (elt) -> 
-        dictionary[elt[prop]] = elt if elt? and elt[prop]?
-      return dictionary
-
+```coffeescript
+methods.toDictionary = (array, prop) ->
+  dictionary = {}
+  array.forEach (elt) -> 
+    dictionary[elt[prop]] = elt if elt? and elt[prop]?
+  return dictionary
+```
 
 
 **amap**
 
 Asynchronous map 
 Use the awesome **lateral** module to do the job
+```coffeescript
+methods.amap = (func, nbProcesses) ->
+  nbProcesses ?= 1
+  (array, done) ->
+    results = []
+    errors = null
+    unit = lateral.create (complete, item) ->
+      func item, (err, res) ->
+        if err?
+          errors ?= []
+          errors.push(err)
+          results.push null
+        else
+          results.push res
+        complete()
+    , nbProcesses
 
-    methods.amap = (func, nbProcesses) ->
-      nbProcesses ?= 1
-      (array, done) ->
-        results = []
-        errors = null
-        unit = lateral.create (complete, item) ->
-          func item, (err, res) ->
-            if err?
-              errors ?= []
-              errors.push(err)
-              results.push null
-            else
-              results.push res
-            complete()
-        , nbProcesses
-
-        unit.add(array).when () ->
-          done errors, results
-
+    unit.add(array).when () ->
+      done errors, results
+```
 **chain**
 
 Chain aynschronous methods with signature (params, done) -> done(err, result)
 Stop if one of the method has an error in the callback
-
-    global.Array.prototype.chain = (params, done, err) ->
-      if @.length == 0
-        done err, params
+```coffeescript
+global.Array.prototype.chain = (params, done, err) ->
+  if @.length == 0
+    done err, params
+  else
+    @[0] params, (err, res) =>
+      if err?
+        done err, res
       else
-        @[0] params, (err, res) =>
-          if err?
-            done err, res
-          else
-            @.slice(1, @.length).chain(res, done, err)
-
+        @.slice(1, @.length).chain(res, done, err)
+```
 
 
 Export public methods
