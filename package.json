@@ -1,0 +1,15 @@
+{
+  "name": "Barefoot",
+  "version": "0.0.1",
+  "description": "Barefoot is a utility-belt library for Node for asynchronous functions manipulation",
+  "main": "barefoot.coffee",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/Creative-Licence/Barefoot.git"
+  },
+  "author": "matTtam",
+  "license": "BSD"
+}
