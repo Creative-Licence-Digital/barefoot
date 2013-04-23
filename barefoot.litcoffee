@@ -1,6 +1,13 @@
 Barefoot
 ========
 
+Barefoot is a utility-belt library for Node for asynchronous functions manipulation
+To install it
+`npm install barefoot`
+
+To use it
+`bf = require 'barefoot'`
+
    
 Module dependencies
 -------------------
