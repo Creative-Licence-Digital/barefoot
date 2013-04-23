@@ -4,8 +4,10 @@ Barefoot
    
 Module dependencies
 -------------------
-    lateral = require 'lateral'
 
+```coffeescript
+lateral = require 'lateral'
+```
 
 
 Let's get started
@@ -36,8 +38,8 @@ Provides a function which test if parameters object has certain properties
 methods.has = (parameters) ->
   (params, done) ->
     ok = true
-    ok = (ok and params? and params.par?) for par in parameters
-    done (if ok then null else new Error("Missing Parameters")), ok
+    ok = (ok and params? and params[par]?) for par in parameters
+    done (if ok then null else new Error("Missing Parameters")), params
 ```
 
 **amap**
@@ -77,7 +79,7 @@ methods.chain = (funcs) ->
         if err?
           done err, res
         else
-          methods.chain(funcs.slice(1, funcs.length))(params, done, err)
+          methods.chain(funcs.slice(1, funcs.length))(res, done, err)
 ```
 
 
