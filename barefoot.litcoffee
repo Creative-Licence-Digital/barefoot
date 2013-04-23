@@ -91,6 +91,17 @@ Stop if one of the method has an error in the callback
             else
               methods.chain(funcs.slice(1, funcs.length))(res, done, err)
 
+
+**avoid**
+
+Wrap a void returning function to make it callable in a chain
+
+    methods.avoid = (func) ->
+      (params, done) ->
+        func(params)
+        done null, params 
+
+
 **parallel**
 
 Execute asynchronous functions which take same inputs 

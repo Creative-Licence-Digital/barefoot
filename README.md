@@ -91,6 +91,17 @@ methods.chain = (funcs) ->
         else
           methods.chain(funcs.slice(1, funcs.length))(res, done, err)
 ```
+
+**avoid**
+
+Wrap a void returning function to make it callable in a chain
+```coffeescript
+methods.avoid = (func) ->
+  (params, done) ->
+    func(params)
+    done null, params 
+```
+
 **parallel**
 
 Execute asynchronous functions which take same inputs 
