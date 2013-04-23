@@ -91,9 +91,30 @@ methods.chain = (funcs) ->
         else
           methods.chain(funcs.slice(1, funcs.length))(res, done, err)
 ```
+**parallel**
 
+Execute asynchronous functions which take same inputs 
+```coffeescript
+methods.parallel = (funcs) ->
+  (params, done) -> 
+    
+    i = 0
+    errors = []
+    results = []
+    tempDone = (err, result) ->
+      i++
+      errors.push(err) if err?
+      results.push result
+      if i == funcs.length
+        error = if errors.length > 0  then errors else null
+        done error, results
 
+    funcs.forEach (func) ->
+      func params, tempDone
+```
 Export public methods
 ---------------------
+```coffeescript
+module.exports = methods
+```
 
-    module.exports = methods
