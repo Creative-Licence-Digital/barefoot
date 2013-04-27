@@ -23,17 +23,12 @@ Module dependencies
 Let's get started
 ------------------
 
-We declare an object to contain all the methods we want to export from this  module
-
-    methods = {}
-
-
 
 **toDictionary** 
 
 Transform an array of object into a dictionary based on the property passed as a second param
 
-    methods.toDictionary = (array, prop) ->
+    toDictionary = (array, prop) ->
       dictionary = {}
       array.forEach (elt) -> 
         dictionary[elt[prop]] = elt if elt? and elt[prop]?
@@ -45,7 +40,7 @@ Transform an array of object into a dictionary based on the property passed as a
 
 Provides a function which test if parameters object has certain properties
 
-    methods.has = (parameters) ->
+    has = (parameters) ->
       (params, done) ->
         ok = true
         ok = (ok and params? and params[par]?) for par in parameters
@@ -57,7 +52,7 @@ Provides a function which test if parameters object has certain properties
 Asynchronous map 
 Use the awesome **lateral** module to do the job
 
-    methods.amap = (func, nbProcesses = 1) ->
+    amap = (func, nbProcesses = 1) ->
       (array, done) ->
         results = []
         errors = null
@@ -80,7 +75,7 @@ Use the awesome **lateral** module to do the job
 Chain aynschronous methods with signature (params, done) -> done(err, result)
 Stop if one of the method has an error in the callback
 
-    methods.chain = (funcs) -> 
+    chain = (funcs) -> 
       (params, done, err) ->
         if funcs.length == 0
           done err, params
@@ -96,7 +91,7 @@ Stop if one of the method has an error in the callback
 
 Wrap a void returning function to make it callable in a chain
 
-    methods.avoid = (func) ->
+    avoid = (func) ->
       (params, done) ->
         func(params)
         done null, params 
@@ -106,7 +101,7 @@ Wrap a void returning function to make it callable in a chain
 
 Execute asynchronous functions which take same inputs 
 
-    methods.parallel = (funcs) ->
+    parallel = (funcs) ->
       (params, done) -> 
         
         i = 0
@@ -123,9 +118,52 @@ Execute asynchronous functions which take same inputs
         funcs.forEach (func) ->
           func params, tempDone
 
+
+**getRequestParams**
+
+    getRequestParams = (req) -> 
+      params = {}
+      for field in ["body", "query", "params"]
+        if req[field]?
+          params = _.extend params, req[field]
+      params.user = req.user if req.user?
+      params
+
+
+**webService**
+
+    webService = (method) ->
+      (req, res) ->
+        method getRequestParams(req), (err, data) ->
+          res.send data
+
+
+**webPage**
+
+    webPage = (template, method) ->
+      (req, res) ->
+        if not method? and template?
+          res.render template, getRequestParams(req)
+        else
+          method getRequestParams(req), (err, data) ->
+            if err?
+              res.send 500
+            else
+              data = {} if not data?
+              data.user = req.user if req.user? and not data.user?
+              res.render template, data
+
+
 Export public methods
 ---------------------
 
-    module.exports = methods
-
+    module.exports =
+      toDictionary : toDictionary
+      has          : has
+      amap         : amap
+      chain        : chain
+      avoid        : avoid
+      parallel     : parallel
+      webService   : webService
+      webPage      : webPage
 
