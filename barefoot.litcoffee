@@ -17,6 +17,7 @@ Module dependencies
 
 
     lateral = require 'lateral'
+    _       = require 'underscore'
 
 
 
