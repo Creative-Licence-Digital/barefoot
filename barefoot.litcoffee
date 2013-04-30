@@ -133,9 +133,10 @@ Execute asynchronous functions which take same inputs
 
 **webService**
 
-    webService = (method) ->
+    webService = (method, contentType = "application/json") ->
       (req, res) ->
         method getRequestParams(req), (err, data) ->
+          res.contentType contentType
           res.send data
 
 
