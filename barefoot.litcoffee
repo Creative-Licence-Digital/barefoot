@@ -136,9 +136,11 @@ Execute asynchronous functions which take same inputs
     webService = (method, contentType = "application/json") ->
       (req, res) ->
         method getRequestParams(req), (err, data) ->
-          res.contentType contentType
-          res.send data
-
+          if contentType == "application/json"
+            res.send data
+          else
+            res.contentType contentType
+            res.end data.toString()
 
 **webPage**
 
