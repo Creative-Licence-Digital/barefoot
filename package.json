@@ -1,6 +1,6 @@
 {
   "name": "barefoot",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "description": "barefoot is a utility-belt library for Node for asynchronous functions manipulation",
   "main": "barefoot.litcoffee",
   "repository": {
