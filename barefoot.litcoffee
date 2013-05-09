@@ -160,6 +160,25 @@ Execute asynchronous functions which take same inputs
               data.user = req.user if req.user? and not data.user?
               res.render template, data
 
+**memoryCache**
+    
+
+    memoize = (method, seconds) ->
+      cache = {}
+
+      (params, done) ->
+        hash = JSON.stringify(params)
+        if cache[hash]? and cache[hash].expiration < new Date()
+          done null, cache[hash].result
+        else
+          method params, (err, res) ->
+            if not err?
+              cache[hash] =
+                result : res
+                expiration : (new Date()).setSeconds((new Date()).getSeconds() + seconds)
+
+            done err, res
+
 
 Export public methods
 ---------------------
@@ -173,4 +192,5 @@ Export public methods
       parallel     : parallel
       webService   : webService
       webPage      : webPage
+      memoize      : memoize
 
