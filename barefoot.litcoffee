@@ -168,7 +168,7 @@ Execute asynchronous functions which take same inputs
 
       (params, done) ->
         hash = JSON.stringify(params)
-        if cache[hash]? and cache[hash].expiration < new Date()
+        if cache[hash]? and cache[hash].expiration > new Date()
           done null, cache[hash].result
         else
           method params, (err, res) ->
