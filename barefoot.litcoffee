@@ -150,7 +150,10 @@ Execute asynchronous functions which take same inputs
     webPage = (template, method) ->
       (req, res) ->
         if not method? and template?
-          res.render template, getRequestParams(req)
+          data = getRequestParams(req)
+          data.__ = 
+            template : template
+          res.render template, data 
         else
           method getRequestParams(req), (err, data) ->
             if err?
@@ -158,6 +161,8 @@ Execute asynchronous functions which take same inputs
             else
               data = {} if not data?
               data.user = req.user if req.user? and not data.user?
+              data.__ = 
+                template : template
               res.render template, data
 
 **memoryCache**
