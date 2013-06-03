@@ -73,20 +73,19 @@ Use the awesome **lateral** module to do the job
 
 **chain**
 
-Chain aynschronous methods with signature (params, done) -> done(err, result)
+Chain aynschronous methods with signature (val, done) -> done(err, result)
 Stop if one of the method has an error in the callback
 
-    chain = (funcs) -> 
-      (params, done, err) ->
+    chain = (funcs) ->
+      (val, done) ->
         if funcs.length == 0
-          done err, params
+          done null, val
         else
-          funcs[0] params, (err, res) =>
+          funcs[0] val, (err, res) =>
             if err?
               done err, res
             else
-              chain(funcs.slice(1, funcs.length))(res, done, err)
-
+              chain(funcs[1..])(res, done)
 
 **avoid**
 

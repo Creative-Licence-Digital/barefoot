@@ -17,6 +17,7 @@ Module dependencies
 
 ```coffeescript
 lateral = require 'lateral'
+_       = require 'underscore'
 ```
 
 
@@ -72,21 +73,20 @@ amap = (func, nbProcesses = 1) ->
 ```
 **chain**
 
-Chain aynschronous methods with signature (params, done) -> done(err, result)
+Chain aynschronous methods with signature (val, done) -> done(err, result)
 Stop if one of the method has an error in the callback
 ```coffeescript
-chain = (funcs) -> 
-  (params, done, err) ->
+chain = (funcs) ->
+  (val, done) ->
     if funcs.length == 0
-      done err, params
+      done null, val
     else
-      funcs[0] params, (err, res) =>
+      funcs[0] val, (err, res) =>
         if err?
           done err, res
         else
-          methods.chain(funcs.slice(1, funcs.length))(res, done, err)
+          chain(funcs[1..])(res, done)
 ```
-
 **avoid**
 
 Wrap a void returning function to make it callable in a chain
@@ -132,18 +132,27 @@ getRequestParams = (req) ->
 
 **webService**
 ```coffeescript
-webService = (method) ->
+webService = (method, contentType = "application/json") ->
   (req, res) ->
     method getRequestParams(req), (err, data) ->
-      res.send data
+      if err? 
+        res.send 500
+      else
+        if contentType == "application/json"
+          res.send data
+        else
+          res.contentType contentType
+          res.end data.toString()
 ```
-
 **webPage**
 ```coffeescript
 webPage = (template, method) ->
   (req, res) ->
     if not method? and template?
-      res.render template, getRequestParams(req)
+      data = getRequestParams(req)
+      data.__ = 
+        template : template
+      res.render template, data 
     else
       method getRequestParams(req), (err, data) ->
         if err?
@@ -151,7 +160,28 @@ webPage = (template, method) ->
         else
           data = {} if not data?
           data.user = req.user if req.user? and not data.user?
+          data.__ = 
+            template : template
           res.render template, data
+```
+**memoryCache**
+    
+```coffeescript
+memoize = (method, seconds) ->
+  cache = {}
+
+  (params, done) ->
+    hash = JSON.stringify(params)
+    if cache[hash]? and cache[hash].expiration > new Date()
+      done null, cache[hash].result
+    else
+      method params, (err, res) ->
+        if not err?
+          cache[hash] =
+            result : res
+            expiration : (new Date()).setSeconds((new Date()).getSeconds() + seconds)
+
+        done err, res
 ```
 
 Export public methods
@@ -166,4 +196,5 @@ module.exports =
   parallel     : parallel
   webService   : webService
   webPage      : webPage
+  memoize      : memoize
 ```
