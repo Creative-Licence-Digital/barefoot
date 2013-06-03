@@ -87,13 +87,6 @@ Stop if one of the method has an error in the callback
             else
               chain(funcs[1..])(res, done)
 
-**runChain**
-
-Like `chain`, but runs the chained function it creates instantly with a null argument
-
-    runChain = (funcs) ->
-      chain(funcs) null
-
 **avoid**
 
 Wrap a void returning function to make it callable in a chain
@@ -124,22 +117,6 @@ Execute asynchronous functions which take same inputs
 
         funcs.forEach (func) ->
           func params, tempDone
-
-**pure**
-
-Wrap a value into a function callable in a chain
-
-    pure = (val) ->
-      (params, done) ->
-        done null, val
-
-**error**
-
-Create a function callable in a chain that just triggers an error
-
-    error = (err) ->
-      (params, done) ->
-        done err
 
 
 **getRequestParams**
@@ -215,11 +192,8 @@ Export public methods
       has          : has
       amap         : amap
       chain        : chain
-      runChain     : runChain
       avoid        : avoid
       parallel     : parallel
-      pure         : pure
-      error        : error
       webService   : webService
       webPage      : webPage
       memoize      : memoize
