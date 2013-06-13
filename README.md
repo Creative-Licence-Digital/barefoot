@@ -135,10 +135,12 @@ getRequestParams = (req) ->
 webService = (method, contentType = "application/json") ->
   (req, res) ->
     method getRequestParams(req), (err, data) ->
-      if err instanceof HttpError
-        err.apply res
-      else if err? 
-        res.send 500
+      if err?
+        console.error err
+        if err instanceof HttpError
+          err.apply res
+        else
+          res.send 500
       else
         if contentType == "application/json"
           res.send data
@@ -157,10 +159,12 @@ webPage = (template, method) ->
       res.render template, data 
     else
       method getRequestParams(req), (err, data) ->
-        if err instanceof HttpError
-          err.apply res
-        else if err?
-          res.send 500
+        if err?
+          console.error err
+          if err instanceof HttpError
+            err.apply res
+          else
+            res.send 500
         else
           data = {} if not data?
           data.user = req.user if req.user? and not data.user?
