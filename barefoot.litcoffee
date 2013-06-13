@@ -135,7 +135,9 @@ Execute asynchronous functions which take same inputs
     webService = (method, contentType = "application/json") ->
       (req, res) ->
         method getRequestParams(req), (err, data) ->
-          if err? 
+          if err instanceof HttpError
+            err.apply res
+          else if err? 
             res.send 500
           else
             if contentType == "application/json"
@@ -155,7 +157,9 @@ Execute asynchronous functions which take same inputs
           res.render template, data 
         else
           method getRequestParams(req), (err, data) ->
-            if err?
+            if err instanceof HttpError
+              err.apply res
+            else if err?
               res.send 500
             else
               data = {} if not data?
@@ -182,6 +186,31 @@ Execute asynchronous functions which take same inputs
                 expiration : (new Date()).setSeconds((new Date()).getSeconds() + seconds)
 
             done err, res
+
+**HttpError**
+
+When `webService` or `webPage` gets an instance of HttpError back as an error (in the callback), a custom
+HTTP response code and message can be used.
+
+    class HttpError
+      # static helper methods
+      @badRequest          = -> new @ code: 400
+      @unauthorized        = -> new @ code: 401
+      @forbidden           = -> new @ code: 403
+      @notFound            = -> new @ code: 404
+      @internalServerError = -> new @ code: 500
+
+      code: 500
+      data: null
+      headers: null
+
+      constructor: (params) ->
+        {@code, @data, @headers} = params
+
+      apply: (res) ->
+        for key, value of @headers
+          res.set key, value
+        res.send @code, @data
 
 
 Export public methods
