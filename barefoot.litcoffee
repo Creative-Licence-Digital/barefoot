@@ -226,4 +226,5 @@ Export public methods
       webService   : webService
       webPage      : webPage
       memoize      : memoize
+      HttpError    : HttpError
 

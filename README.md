@@ -226,4 +226,5 @@ module.exports =
   webService   : webService
   webPage      : webPage
   memoize      : memoize
+  HttpError    : HttpError
 ```
