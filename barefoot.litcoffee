@@ -43,7 +43,7 @@ Let's get started
 **sequence**
 
     sequence = (done) ->
-      funcs = []
+      queue = []
       running = false
       finished = false
       result = null
@@ -51,14 +51,19 @@ Let's get started
       run = ->
         running = true
 
-        if funcs.length > 0
-          func = funcs[0]
-          funcs = funcs[1..]
+        if queue.length > 0
+          task = queue[0]
+          queue = queue[1..]
 
-          func result, (err, res) ->
-            if err?
-              done err
-            else
+          if task.full
+            task.func result, (err, res) ->
+              if err?
+                done err
+              else
+                result = res
+                run()
+          else
+            task.func result, (res) ->
               result = res
               run()
         else
@@ -67,11 +72,11 @@ Let's get started
             done null, result
 
       add: (func) ->
-        funcs.push func
+        queue.push func: func, full: true
         if not running then run()
 
       then: (func) ->
-        funcs.push ignore func
+        queue.push func: ignore(func), full: false
         if not running then run()
 
       end: ->
