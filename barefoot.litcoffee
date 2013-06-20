@@ -24,6 +24,62 @@ Module dependencies
 Let's get started
 ------------------
 
+**ignore**
+
+    ignore = (func) ->
+      (arg, args...) ->
+        func args...
+
+**errorWrapper**
+
+    errorWrapper = (handler) ->
+      (func) ->
+        (err, args...) ->
+          if err?
+            handler err
+          else
+            func args...
+
+**sequence**
+
+    sequence = (done) ->
+      funcs = []
+      running = false
+      finished = false
+      result = null
+
+      run = ->
+        running = true
+
+        if funcs.length > 0
+          func = funcs[0]
+          funcs = funcs[1..]
+
+          func result, (err, res) ->
+            if err?
+              done err
+            else
+              result = res
+              run()
+        else
+          running = false
+          if finished
+            done null, result
+
+      add: (func) ->
+        funcs.push func
+        if not running then run()
+
+      then: (func) ->
+        funcs.push ignore func
+        if not running then run()
+
+      end: ->
+        finished = true
+        if not running then run()
+
+      w: errorWrapper done
+
 
 **toDictionary** 
 
@@ -232,4 +288,5 @@ Export public methods
       memoize      : memoize
       HttpError    : HttpError
       check        : require './check'
+      sequence     : sequence
 
