@@ -1,38 +1,21 @@
 assert = require 'assert'
 bf     = require '../barefoot'
 
-double = (x, done) -> done null, x * 2
+schema =
+  _a: Number
+  _b: Boolean
+  _c: String
+  _d: /^[0-5]+$/
+  _e: (v) -> v < 50
+  _f: ['dick', 'jane']
+  _g:
+    a: Number
+    b: String
+  h: 1
+  _i: [String]
 
-describe 'barefoot', ->
-	describe 'chain', ->
-		it 'should return 32', ->
-			fn = bf.chain [
-				double
-				double
-				bf.chain [
-					double
-					double
-					double
-				]
-			]
-
-			fn 1, (err, res) ->
-				assert.equal 32, res
-				assert.equal err, null
-
+describe 'bf', ->
   describe 'check', ->
-    schema =
-      _a: Number
-      _b: Boolean
-      _c: String
-      _d: /^[0-5]+$/
-      _e: (v) -> v < 50
-      _f: ['dick', 'jane']
-      _g:
-        a: Number
-        b: String
-      h: 1
-      _i: [String]
 
     it 'should validate all fields', ->
       obj =

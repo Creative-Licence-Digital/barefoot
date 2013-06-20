@@ -231,4 +231,5 @@ Export public methods
       webPage      : webPage
       memoize      : memoize
       HttpError    : HttpError
+      check        : require './check'
 
