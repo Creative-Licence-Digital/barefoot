@@ -18,12 +18,80 @@ Module dependencies
 ```coffeescript
 lateral = require 'lateral'
 _       = require 'underscore'
+check   = require './check'
 ```
 
 
 Let's get started
 ------------------
 
+**ignore**
+
+Create a function of form (arg, args...) from a function of form (args...).
+```coffeescript
+ignore = (func) ->
+  (arg, args...) ->
+    func args...
+```
+**errorWrapper**
+```coffeescript
+errorWrapper = (handler) ->
+  (func) ->
+    (err, args...) ->
+      if err?
+        handler err
+      else
+        func args...
+```
+**sequence**
+```coffeescript
+sequence = (done) ->
+  queue = []
+  running = false
+  finished = false
+  result = null
+
+  run = ->
+    running = true
+
+    if queue.length > 0
+      func = queue[0]
+      queue = queue[1..]
+
+      func result, (err, res) ->
+        if err?
+          done err
+        else
+          result = res
+          run()
+    else
+      running = false
+      if finished
+        done null, result
+
+  add: (func) ->
+    queue.push func
+    if not running then run()
+
+  then: (func) ->
+    queue.push func: ignore(func), full: false
+    if not running then run()
+
+  end: ->
+    finished = true
+    if not running then run()
+
+  w: errorWrapper done
+```
+**validate**
+```coffeescript
+validate = (params, done, schema) ->
+  ok = check params, schema
+  if ok
+    done()
+  else
+    done HttpError.badRequest()
+```
 
 **toDictionary** 
 
@@ -231,4 +299,10 @@ module.exports =
   webPage      : webPage
   memoize      : memoize
   HttpError    : HttpError
+  check        : check
+  sequence     : sequence
+  ignore       : ignore
+  errorWrapper : errorWrapper
+  validate     : validate
 ```
+

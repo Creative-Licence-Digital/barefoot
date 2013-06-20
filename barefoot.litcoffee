@@ -18,6 +18,7 @@ Module dependencies
 
     lateral = require 'lateral'
     _       = require 'underscore'
+    check   = require './check'
 
 
 
@@ -25,6 +26,8 @@ Let's get started
 ------------------
 
 **ignore**
+
+Create a function of form (arg, args...) from a function of form (args...).
 
     ignore = (func) ->
       (arg, args...) ->
@@ -52,18 +55,13 @@ Let's get started
         running = true
 
         if queue.length > 0
-          task = queue[0]
+          func = queue[0]
           queue = queue[1..]
 
-          if task.full
-            task.func result, (err, res) ->
-              if err?
-                done err
-              else
-                result = res
-                run()
-          else
-            task.func result, (res) ->
+          func result, (err, res) ->
+            if err?
+              done err
+            else
               result = res
               run()
         else
@@ -72,7 +70,7 @@ Let's get started
             done null, result
 
       add: (func) ->
-        queue.push func: func, full: true
+        queue.push func
         if not running then run()
 
       then: (func) ->
@@ -84,6 +82,15 @@ Let's get started
         if not running then run()
 
       w: errorWrapper done
+
+**validate**
+
+    validate = (params, done, schema) ->
+      ok = check params, schema
+      if ok
+        done()
+      else
+        done HttpError.badRequest()
 
 
 **toDictionary** 
@@ -292,6 +299,10 @@ Export public methods
       webPage      : webPage
       memoize      : memoize
       HttpError    : HttpError
-      check        : require './check'
+      check        : check
       sequence     : sequence
+      ignore       : ignore
+      errorWrapper : errorWrapper
+      validate     : validate
+
 
