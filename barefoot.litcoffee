@@ -74,7 +74,7 @@ Create a function of form (arg, args...) from a function of form (args...).
         if not running then run()
 
       then: (func) ->
-        queue.push func: ignore(func), full: false
+        queue.push ignore func
         if not running then run()
 
       end: ->
