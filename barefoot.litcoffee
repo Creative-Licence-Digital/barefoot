@@ -123,7 +123,7 @@ Execute asynchronous functions which take same inputs
 
     getRequestParams = (req) -> 
       params = {}
-      for field in ["body", "query", "params"]
+      for field in ["body", "query", "params", "files"]
         if req[field]?
           params = _.extend params, req[field]
       params.user = req.user if req.user?
