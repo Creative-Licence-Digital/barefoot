@@ -97,6 +97,13 @@ Wrap a void returning function to make it callable in a chain
         done null, params 
 
 
+**nothing**
+
+Do nothing but be defined
+
+    nothing = (params, done) -> done null, params
+
+
 **parallel**
 
 Execute asynchronous functions which take same inputs 
@@ -197,4 +204,5 @@ Export public methods
       webService   : webService
       webPage      : webPage
       memoize      : memoize
+      nothing      : nothing
 
