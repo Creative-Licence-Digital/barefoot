@@ -69,7 +69,7 @@ Use the awesome **lateral** module to do the job
         , nbProcesses
 
         unit.add(array).when () ->
-          done errors, results
+          done(errors, results) if done?
 
 **chain**
 
