@@ -319,6 +319,7 @@ Export public methods
       parallel     : parallel
       webService   : webService
       webPage      : webPage
+      middleware   : middleware
       memoize      : memoize
       HttpError    : HttpError
       check        : check
