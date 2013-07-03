@@ -251,7 +251,7 @@ Execute asynchronous functions which take same inputs
 
     middleware = (func) ->
       (req, res, ok) ->
-        func bf.getRequestParams(req), (err, val) ->
+        func req, (err, val) ->
           if err?
             if err instanceof bf.HttpError
               bf.apply res

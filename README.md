@@ -251,7 +251,7 @@ webPage = (template, method) ->
 ```coffeescript
 middleware = (func) ->
   (req, res, ok) ->
-    func bf.getRequestParams(req), (err, val) ->
+    func req, (err, val) ->
       if err?
         if err instanceof bf.HttpError
           bf.apply res
