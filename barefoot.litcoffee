@@ -25,13 +25,13 @@ Module dependencies
 Let's get started
 ------------------
 
-**ignore**
+**swap**
 
-Create a function of form (arg, args...) from a function of form (args...).
+Create a function of form (b, a, c...) from a function of form (a, b, c...).
 
-    ignore = (func) ->
-      (arg, args...) ->
-        func args...
+    swap = (func) ->
+      (b, a, c...) ->
+        func a, b, c...
 
 **errorWrapper**
 
@@ -74,7 +74,7 @@ Create a function of form (arg, args...) from a function of form (args...).
         if not running then run()
 
       then: (func) ->
-        queue.push ignore func
+        queue.push swap func
         if not running then run()
 
       end: ->
@@ -323,7 +323,7 @@ Export public methods
       HttpError    : HttpError
       check        : check
       sequence     : sequence
-      ignore       : ignore
+      swap         : swap
       errorWrapper : errorWrapper
       validate     : validate
 
