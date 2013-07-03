@@ -253,8 +253,8 @@ middleware = (func) ->
   (req, res, ok) ->
     func req, (err, val) ->
       if err?
-        if err instanceof bf.HttpError
-          bf.apply res
+        if err instanceof HttpError
+          err.apply res
         else
           console.error err
           res.send 500
