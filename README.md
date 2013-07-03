@@ -74,7 +74,7 @@ sequence = (done) ->
     if not running then run()
 
   then: (func) ->
-    queue.push func: ignore(func), full: false
+    queue.push ignore func
     if not running then run()
 
   end: ->
@@ -85,12 +85,13 @@ sequence = (done) ->
 ```
 **validate**
 ```coffeescript
-validate = (params, done, schema) ->
-  ok = check params, schema
-  if ok
-    done()
-  else
-    done HttpError.badRequest()
+validate = (schema) ->
+  (params, done) ->
+    ok = check params, schema
+    if ok
+      done null, params
+    else
+      done HttpError.badRequest(), params
 ```
 
 **toDictionary** 
@@ -154,6 +155,12 @@ chain = (funcs) ->
           done err, res
         else
           chain(funcs[1..])(res, done)
+```
+**select**
+```coffeescript
+select = (func) ->
+  (params, done) ->
+    done null, func(params)
 ```
 **avoid**
 
@@ -228,10 +235,10 @@ webPage = (template, method) ->
     else
       method getRequestParams(req), (err, data) ->
         if err?
-          console.error err
           if err instanceof HttpError
             err.apply res
           else
+            console.error err
             res.send 500
         else
           data = {} if not data?
@@ -239,6 +246,20 @@ webPage = (template, method) ->
           data.__ = 
             template : template
           res.render template, data
+```
+**middleware**
+```coffeescript
+middleware = (func) ->
+  (req, res, ok) ->
+    func bf.getRequestParams(req), (err, val) ->
+      if err?
+        if err instanceof bf.HttpError
+          bf.apply res
+        else
+          console.error err
+          res.send 500
+      else
+        ok()
 ```
 **memoryCache**
     
@@ -294,6 +315,7 @@ module.exports =
   amap         : amap
   chain        : chain
   avoid        : avoid
+  select       : select
   parallel     : parallel
   webService   : webService
   webPage      : webPage

@@ -85,12 +85,13 @@ Create a function of form (arg, args...) from a function of form (args...).
 
 **validate**
 
-    validate = (params, done, schema) ->
-      ok = check params, schema
-      if ok
-        done()
-      else
-        done HttpError.badRequest()
+    validate = (schema) ->
+      (params, done) ->
+        ok = check params, schema
+        if ok
+          done null, params
+        else
+          done HttpError.badRequest(), params
 
 
 **toDictionary** 
@@ -154,6 +155,12 @@ Stop if one of the method has an error in the callback
               done err, res
             else
               chain(funcs[1..])(res, done)
+
+**select**
+
+    select = (func) ->
+      (params, done) ->
+        done null, func(params)
 
 **avoid**
 
@@ -228,10 +235,10 @@ Execute asynchronous functions which take same inputs
         else
           method getRequestParams(req), (err, data) ->
             if err?
-              console.error err
               if err instanceof HttpError
                 err.apply res
               else
+                console.error err
                 res.send 500
             else
               data = {} if not data?
@@ -239,6 +246,20 @@ Execute asynchronous functions which take same inputs
               data.__ = 
                 template : template
               res.render template, data
+
+**middleware**
+
+    middleware = (func) ->
+      (req, res, ok) ->
+        func bf.getRequestParams(req), (err, val) ->
+          if err?
+            if err instanceof bf.HttpError
+              bf.apply res
+            else
+              console.error err
+              res.send 500
+          else
+            ok()
 
 **memoryCache**
     
@@ -294,6 +315,7 @@ Export public methods
       amap         : amap
       chain        : chain
       avoid        : avoid
+      select       : select
       parallel     : parallel
       webService   : webService
       webPage      : webPage
