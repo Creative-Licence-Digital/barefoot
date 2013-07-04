@@ -147,6 +147,7 @@ Stop if one of the method has an error in the callback
 
     chain = (funcs) ->
       (val, done) ->
+        funcs = funcs() if _.isFunction funcs
         if funcs.length == 0
           done null, val
         else
