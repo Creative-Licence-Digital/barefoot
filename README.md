@@ -205,11 +205,10 @@ returns  = (method, property) ->
 
 mono  = (method) -> 
   (params, done) -> 
-    method done
+    method(done)
 ```
 
-
-**Prepare **
+**Prepare**
 ```coffeescript
 prepare = (method, first_arg) -> 
   (params, done) -> 

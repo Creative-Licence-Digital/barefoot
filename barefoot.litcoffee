@@ -207,12 +207,6 @@ Execute asynchronous functions which take same inputs
       (params, done) -> 
         method(done)
 
-
-**Prepare**
-
-    prepare = (method, first_arg) -> 
-      (params, done) -> 
-        method first_arg, done 
     
 
 
@@ -232,5 +226,4 @@ Export public methods
       nothing      : nothing
       returns      : returns
       mono         : mono
-      prepare      : prepare
 
