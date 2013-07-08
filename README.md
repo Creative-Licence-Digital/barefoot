@@ -69,7 +69,7 @@ amap = (func, nbProcesses = 1) ->
     , nbProcesses
 
     unit.add(array).when () ->
-      done errors, results
+      done(errors, results) if done?
 ```
 **chain**
 
@@ -95,6 +95,13 @@ avoid = (func) ->
   (params, done) ->
     func(params)
     done null, params 
+```
+
+**nothing**
+
+Do nothing but be defined
+```coffeescript
+nothing = (params, done) -> done null, params
 ```
 
 **parallel**
@@ -123,7 +130,7 @@ parallel = (funcs) ->
 ```coffeescript
 getRequestParams = (req) -> 
   params = {}
-  for field in ["body", "query", "params"]
+  for field in ["body", "query", "params", "files"]
     if req[field]?
       params = _.extend params, req[field]
   params.user = req.user if req.user?
@@ -184,6 +191,32 @@ memoize = (method, seconds) ->
         done err, res
 ```
 
+**Returns in a specific property of the params object**
+
+```coffeescript
+returns  = (method, property) -> 
+  (params, done) -> 
+    method params, (err, res) -> 
+      params[property] = res
+      done err, params
+```
+**Combine with functions that only have a callback**
+```coffeescript
+
+mono  = (method) -> 
+  (params, done) -> 
+    method done
+```
+
+
+**Prepare **
+```coffeescript
+prepare = (method, first_arg) -> 
+  (params, done) -> 
+    method first_arg, done 
+
+```
+
 Export public methods
 ---------------------
 ```coffeescript
@@ -197,4 +230,8 @@ module.exports =
   webService   : webService
   webPage      : webPage
   memoize      : memoize
+  nothing      : nothing
+  returns      : returns
+  mono         : mono
+  prepare      : prepare
 ```
