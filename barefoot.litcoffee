@@ -205,11 +205,10 @@ Execute asynchronous functions which take same inputs
     
     mono  = (method) -> 
       (params, done) -> 
-        method done
+        method(done)
 
 
-
-**Prepare **
+**Prepare**
 
     prepare = (method, first_arg) -> 
       (params, done) -> 
