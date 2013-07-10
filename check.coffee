@@ -5,6 +5,7 @@ checkValue = (value, type) ->
   if type is String and not _.isString value then return false
   if type is Array and not _.isArray value then return false
   if type is Boolean and not _.isBoolean value then return false
+  if type is Object and not _.isObject value then return false
 
   if _.isRegExp type
     if not type.test value
