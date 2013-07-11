@@ -91,11 +91,9 @@ validate = (schema) ->
     if c.ok
       done null, params
     else
-      e = HttpError.badRequest()
-      e.data = msg: c.reason
-      done e, params
+      done HttpError.badRequest
+        data: error: c.reason
 ```
-
 **toDictionary** 
 
 Transform an array of object into a dictionary based on the property passed as a second param
@@ -289,12 +287,14 @@ When `webService` or `webPage` gets an instance of HttpError back as an error (i
 HTTP response code and message can be used.
 ```coffeescript
 class HttpError
-  # static helper methods
-  @badRequest          = -> new @ code: 400
-  @unauthorized        = -> new @ code: 401
-  @forbidden           = -> new @ code: 403
-  @notFound            = -> new @ code: 404
-  @internalServerError = -> new @ code: 500
+  staticMethod = (code) ->
+    (params) -> new HttpError _.extend code: code, params
+
+  @badRequest          = staticMethod 400
+  @unauthorized        = staticMethod 401
+  @forbidden           = staticMethod 403
+  @notFound            = staticMethod 404
+  @internalServerError = staticMethod 500
 
   code: 500
   data: null
