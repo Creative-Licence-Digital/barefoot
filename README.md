@@ -87,11 +87,13 @@ sequence = (done) ->
 ```coffeescript
 validate = (schema) ->
   (params, done) ->
-    ok = check params, schema
-    if ok
+    c = check params, schema
+    if c.ok
       done null, params
     else
-      done HttpError.badRequest(), params
+      e = HttpError.badRequest()
+      e.data = c.reason
+      done e, params
 ```
 
 **toDictionary** 

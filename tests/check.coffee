@@ -32,14 +32,14 @@ describe 'bf', ->
         i: ['hey', 'there']
 
       res = bf.check obj, schema
-      assert.equal res, true
+      assert.equal res.ok, true
 
     it 'should not require optional fields', ->
       obj =
         h: 'sup?'
 
       res = bf.check obj, schema
-      assert.equal res, true
+      assert.equal res.ok, true
 
     it 'should validate numbers', ->
       obj =
@@ -47,7 +47,7 @@ describe 'bf', ->
         h: 'sup?'
 
       res = bf.check obj, schema
-      assert.equal res, false
+      assert.equal res.ok, false
 
     it 'should validate booleans', ->
       obj =
@@ -55,7 +55,7 @@ describe 'bf', ->
         h: 'sup?'
 
       res = bf.check obj, schema
-      assert.equal res, false
+      assert.equal res.ok, false
 
     it 'should validate strings', ->
       obj =
@@ -63,7 +63,7 @@ describe 'bf', ->
         h: 'sup?'
 
       res = bf.check obj, schema
-      assert.equal res, false
+      assert.equal res.ok, false
 
     it 'should validate regexps', ->
       obj =
@@ -71,7 +71,7 @@ describe 'bf', ->
         h: 'sup?'
 
       res = bf.check obj, schema
-      assert.equal res, false
+      assert.equal res.ok, false
 
     it 'should use validation functions', ->
       obj =
@@ -79,7 +79,7 @@ describe 'bf', ->
         h: 'sup?'
 
       res = bf.check obj, schema
-      assert.equal res, false
+      assert.equal res.ok, false
 
     it 'should validate enums', ->
       obj =
@@ -87,7 +87,7 @@ describe 'bf', ->
         h: 'sup?'
 
       res = bf.check obj, schema
-      assert.equal res, false
+      assert.equal res.ok, false
 
     it 'should validate typed arrays', ->
       obj =
@@ -95,4 +95,4 @@ describe 'bf', ->
         i: [2, 'hey']
 
       res = bf.check obj, schema
-      assert.equal res, false
+      assert.equal res.ok, false

@@ -1,35 +1,9 @@
 _ = require 'underscore'
 
-checkValue = (value, type) ->
-  if type is Number and not _.isNumber value then return false
-  if type is String and not _.isString value then return false
-  if type is Array and not _.isArray value then return false
-  if type is Boolean and not _.isBoolean value then return false
-  if type is Object and not _.isObject value then return false
+fail = (reason) ->
+  ok: false, reason: reason
 
-  if _.isRegExp type
-    if not type.test value
-      return false
-
-  if _.isArray(type) and type.length == 1
-    if _.some(value, (v) -> not checkValue v, type[0])
-      return false
-
-  if _.isArray(type) and type.length > 1
-    if value not in type
-      return false
-
-  if _.isObject type
-    if not checkObject value, type
-      return false
-
-  if _.isFunction type
-    if not type value
-      return false
-
-  return true
-
-checkObject = (object, schema) ->
+checkObject = (pathPrefix, object, schema) ->
   for key, type of schema
 
     optional = key[0] == '_'
@@ -38,15 +12,49 @@ checkObject = (object, schema) ->
 
     value = object[key]
 
+    path = if pathPrefix then "#{pathPrefix}.#{key}" else key
+
     if not optional and not value?
-      return false
+      return fail "#{path} is required"
 
     if not value?
       continue
 
-    if not checkValue value, type
-      return false
+    if _.isFunction type
+      vs =
+        Number:  _.isNumber
+        String:  _.isString
+        Array:   _.isArray
+        Boolean: _.isBoolean
+        Object:  _.isObject
 
-  return true
+      if type.name of vs and not vs[type.name](value)
+        return fail "#{path} is not a #{type.name}"
 
-module.exports = checkObject
+    if _.isRegExp type
+      if not type.test value
+        return fail "#{path} does not match #{type}"
+
+    if _.isArray(type) and type.length == 1
+      if _.some(value, (v) -> not check v, type[0])
+        return fail "#{path} is invalid" # todo: better message
+
+    if _.isArray(type) and type.length > 1
+      if value not in type
+        return fail "#{path} is invalid" # todo: better message
+
+    if _.isObject type
+      c = checkObject path, value, type
+      if not c.ok
+        return fail c.reason
+
+    if _.isFunction type
+      if not type value
+        return fail "#{path} is invalid"
+
+  return ok: true
+
+check = (object, schema) ->
+  checkObject null, object, schema
+
+module.exports = check
