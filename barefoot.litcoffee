@@ -92,7 +92,7 @@ Create a function of form (b, a, c...) from a function of form (a, b, c...).
           done null, params
         else
           e = HttpError.badRequest()
-          e.data = c.reason
+          e.data = msg: c.reason
           done e, params
 
 

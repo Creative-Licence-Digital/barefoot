@@ -92,7 +92,7 @@ validate = (schema) ->
       done null, params
     else
       e = HttpError.badRequest()
-      e.data = c.reason
+      e.data = msg: c.reason
       done e, params
 ```
 
