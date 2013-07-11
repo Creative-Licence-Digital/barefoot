@@ -28,8 +28,12 @@ checkObject = (pathPrefix, object, schema) ->
         Boolean: _.isBoolean
         Object:  _.isObject
 
-      if type.name of vs and not vs[type.name](value)
-        return fail "#{path} is not a #{type.name}"
+      if type.name of vs
+        if not vs[type.name](value)
+          return fail "#{path} is not a #{type.name}"
+      else
+        if not type value
+          return fail "#{path} is invalid"
 
     if _.isRegExp type
       if not type.test value
@@ -47,10 +51,6 @@ checkObject = (pathPrefix, object, schema) ->
       c = checkObject path, value, type
       if not c.ok
         return fail c.reason
-
-    if _.isFunction type
-      if not type value
-        return fail "#{path} is invalid"
 
   return ok: true
 
