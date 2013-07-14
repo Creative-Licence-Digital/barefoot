@@ -151,6 +151,17 @@ Execute asynchronous functions which take same inputs
               res.contentType contentType
               res.end data.toString()
 
+**webPagePost**
+
+    webPagePost = (method, redirect) ->
+      (req, res) ->
+        method getRequestParams(req), (err, data) ->
+          if err? 
+            res.send 500
+          else
+            res.redirect redirect
+
+
 **webPage**
 
     webPage = (template, method) ->
@@ -222,6 +233,7 @@ Export public methods
       parallel     : parallel
       webService   : webService
       webPage      : webPage
+      webPagePost  : webPagePost
       memoize      : memoize
       nothing      : nothing
       returns      : returns
