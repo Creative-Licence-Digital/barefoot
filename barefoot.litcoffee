@@ -163,6 +163,11 @@ Stop if one of the method has an error in the callback
       (params, done) ->
         done null, func(params)
 
+**identity**
+
+    identity = (x, done) ->
+      done null, x
+
 **avoid**
 
 Wrap a void returning function to make it callable in a chain
@@ -319,6 +324,7 @@ Export public methods
       chain        : chain
       avoid        : avoid
       select       : select
+      identity     : identity
       parallel     : parallel
       webService   : webService
       webPage      : webPage

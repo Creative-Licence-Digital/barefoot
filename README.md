@@ -163,6 +163,11 @@ select = (func) ->
   (params, done) ->
     done null, func(params)
 ```
+**identity**
+```coffeescript
+identity = (x, done) ->
+  done null, x
+```
 **avoid**
 
 Wrap a void returning function to make it callable in a chain
@@ -319,6 +324,7 @@ module.exports =
   chain        : chain
   avoid        : avoid
   select       : select
+  identity     : identity
   parallel     : parallel
   webService   : webService
   webPage      : webPage
