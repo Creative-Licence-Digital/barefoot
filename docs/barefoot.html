@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+  <title>Barefoot</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <link rel="stylesheet" media="all" href="public/stylesheets/normalize.css" />
+  <link rel="stylesheet" media="all" href="docco.css" />
+</head>
+<body>
+  <div class="container">
+    <div class="page">
+
+      <div class="header">
+        
+          
+          <h1>Barefoot</h1>
+
+          
+        
+
+        
+      </div>
+
+      
+        
+        <p>Barefoot is a utility-belt library for Node for asynchronous functions manipulation</p>
+<p>To install it</p>
+<p><code>npm install barefoot</code></p>
+<p>To use it</p>
+<p><code>bf = require &#39;barefoot&#39;</code></p>
+<h2>Module dependencies</h2>
+
+        
+      
+        
+        
+        
+          <div class='highlight'><pre>lateral = require <span class="string">'lateral'</span>
+_       = require <span class="string">'underscore'</span></pre></div>
+        
+      
+        
+        <h2>Let&#39;s get started</h2>
+
+        
+      
+        
+        <p><strong>toDictionary</strong> </p>
+<p>Transform an array of object into a dictionary based on the property passed as a second param</p>
+
+        
+          <div class='highlight'><pre><span class="function"><span class="title">toDictionary</span></span> = (array, prop) -&gt;
+  dictionary = {}
+  array.forEach (elt) -&gt; 
+    dictionary[elt[prop]] = elt <span class="keyword">if</span> elt? <span class="keyword">and</span> elt[prop]?
+  <span class="keyword">return</span> dictionary</pre></div>
+        
+      
+        
+        <p><strong>has</strong></p>
+<p>Provides a function which test if parameters object has certain properties</p>
+
+        
+          <div class='highlight'><pre><span class="function"><span class="title">has</span></span> = (parameters) -&gt;
+  (params, done) -&gt;
+    ok = <span class="literal">true</span>
+    ok = (ok <span class="keyword">and</span> params? <span class="keyword">and</span> params[par]?) <span class="keyword">for</span> par <span class="keyword">in</span> parameters
+    done (<span class="keyword">if</span> ok <span class="keyword">then</span> <span class="literal">null</span> <span class="keyword">else</span> <span class="keyword">new</span> Error(<span class="string">"Missing Parameters"</span>)), params</pre></div>
+        
+      
+        
+        <p><strong>amap</strong></p>
+<p>Asynchronous map 
+Use the awesome <strong>lateral</strong> module to do the job</p>
+
+        
+          <div class='highlight'><pre><span class="function"><span class="title">amap</span></span> = (func, nbProcesses = <span class="number">1</span>) -&gt;
+  (array, done) -&gt;
+    results = []
+    errors = <span class="literal">null</span>
+    unit = lateral.create (complete, item) -&gt;
+      func item, (err, res) -&gt;
+        <span class="keyword">if</span> err?
+          errors ?= []
+          errors.push(err)
+          results.push <span class="literal">null</span>
+        <span class="keyword">else</span>
+          results.push res
+        complete()
+    , nbProcesses
+
+    unit.add(array).<span class="keyword">when</span> () -&gt;
+      done(errors, results) <span class="keyword">if</span> done?</pre></div>
+        
+      
+        
+        <p><strong>chain</strong></p>
+<p>Chain aynschronous methods with signature (val, done) -&gt; done(err, result)
+Stop if one of the method has an error in the callback</p>
+
+        
+          <div class='highlight'><pre><span class="function"><span class="title">chain</span></span> = (funcs) -&gt;
+  (val, done) -&gt;
+    <span class="keyword">if</span> funcs.length == <span class="number">0</span>
+      done <span class="literal">null</span>, val
+    <span class="keyword">else</span>
+      funcs[<span class="number">0</span>] val, (err, res) =&gt;
+        <span class="keyword">if</span> err?
+          done err, res
+        <span class="keyword">else</span>
+          chain(funcs[<span class="number">1.</span>.])(res, done)</pre></div>
+        
+      
+        
+        <p><strong>avoid</strong></p>
+<p>Wrap a void returning function to make it callable in a chain</p>
+
+        
+          <div class='highlight'><pre><span class="function"><span class="title">avoid</span></span> = (func) -&gt;
+  (params, done) -&gt;
+    func(params)
+    done <span class="literal">null</span>, params</pre></div>
+        
+      
+        
+        <p><strong>nothing</strong></p>
+<p>Do nothing but be defined</p>
+
+        
+          <div class='highlight'><pre><span class="function"><span class="title">nothing</span></span> = (params, done) -&gt; done <span class="literal">null</span>, params</pre></div>
+        
+      
+        
+        <p><strong>parallel</strong></p>
+<p>Execute asynchronous functions which take same inputs </p>
+
+        
+          <div class='highlight'><pre><span class="function"><span class="title">parallel</span></span> = (funcs) -&gt;
+  (params, done) -&gt; 
+
+    i = <span class="number">0</span>
+    errors = []
+    results = []
+    <span class="function"><span class="title">tempDone</span></span> = (err, result) -&gt;
+      i++
+      errors.push(err) <span class="keyword">if</span> err?
+      results.push result
+      <span class="keyword">if</span> i == funcs.length
+        error = <span class="keyword">if</span> errors.length &gt; <span class="number">0</span>  <span class="keyword">then</span> errors <span class="keyword">else</span> <span class="literal">null</span>
+        done error, results
+
+    funcs.forEach (func) -&gt;
+      func params, tempDone</pre></div>
+        
+      
+        
+        <p><strong>getRequestParams</strong></p>
+
+        
+          <div class='highlight'><pre><span class="function"><span class="title">getRequestParams</span></span> = (req) -&gt; 
+  params = {}
+  <span class="keyword">for</span> field <span class="keyword">in</span> [<span class="string">"body"</span>, <span class="string">"query"</span>, <span class="string">"params"</span>, <span class="string">"files"</span>]
+    <span class="keyword">if</span> req[field]?
+      params = _.extend params, req[field]
+  params.user = req.user <span class="keyword">if</span> req.user?
+  params</pre></div>
+        
+      
+        
+        <p><strong>webService</strong></p>
+
+        
+          <div class='highlight'><pre><span class="function"><span class="title">webService</span></span> = (method, contentType = <span class="string">"application/json"</span>) -&gt;
+  (req, res) -&gt;
+    method getRequestParams(req), (err, data) -&gt;
+      <span class="keyword">if</span> err? 
+        res.send <span class="number">500</span>
+      <span class="keyword">else</span>
+        <span class="keyword">if</span> contentType == <span class="string">"application/json"</span>
+          res.send data
+        <span class="keyword">else</span>
+          res.contentType contentType
+          res.end data.toString()</pre></div>
+        
+      
+        
+        <p><strong>webPage</strong></p>
+
+        
+          <div class='highlight'><pre><span class="function"><span class="title">webPage</span></span> = (template, method) -&gt;
+  (req, res) -&gt;
+    <span class="keyword">if</span> <span class="keyword">not</span> method? <span class="keyword">and</span> template?
+      data = getRequestParams(req)
+      data.__ = 
+        template : template
+      res.render template, data 
+    <span class="keyword">else</span>
+      method getRequestParams(req), (err, data) -&gt;
+        <span class="keyword">if</span> err?
+          res.send <span class="number">500</span>
+        <span class="keyword">else</span>
+          data = {} <span class="keyword">if</span> <span class="keyword">not</span> data?
+          data.user = req.user <span class="keyword">if</span> req.user? <span class="keyword">and</span> <span class="keyword">not</span> data.user?
+          data.__ = 
+            template : template
+          res.render template, data</pre></div>
+        
+      
+        
+        <p><strong>memoryCache</strong></p>
+
+        
+          <div class='highlight'><pre><span class="function"><span class="title">memoize</span></span> = (method, seconds) -&gt;
+  cache = {}
+
+  (params, done) -&gt;
+    hash = JSON.stringify(params)
+    <span class="keyword">if</span> cache[hash]? <span class="keyword">and</span> cache[hash].expiration &gt; <span class="keyword">new</span> Date()
+      done <span class="literal">null</span>, cache[hash].result
+    <span class="keyword">else</span>
+      method params, (err, res) -&gt;
+        <span class="keyword">if</span> <span class="keyword">not</span> err?
+          cache[hash] =
+            result : res
+            expiration : (<span class="keyword">new</span> Date()).setSeconds((<span class="keyword">new</span> Date()).getSeconds() + seconds)
+
+        done err, res</pre></div>
+        
+      
+        
+        <p><strong>Returns in a specific property of the params object</strong></p>
+
+        
+          <div class='highlight'><pre><span class="function"><span class="title">returns</span></span>  = (method, property) -&gt; 
+  (params, done) -&gt; 
+    method params, (err, res) -&gt; 
+      params[property] = res
+      done err, params</pre></div>
+        
+      
+        
+        <p><strong>Combine with functions that only have a callback</strong></p>
+
+        
+          <div class='highlight'><pre><span class="function"><span class="title">mono</span></span>  = (method) -&gt; 
+  (params, done) -&gt; 
+    method done</pre></div>
+        
+      
+        
+        <p><strong>Prepare </strong></p>
+
+        
+          <div class='highlight'><pre><span class="function"><span class="title">prepare</span></span> = (method, first_arg) -&gt; 
+  (params, done) -&gt; 
+    method first_arg, done</pre></div>
+        
+      
+        
+        <h2>Export public methods</h2>
+
+        
+      
+        
+        
+        
+          <div class='highlight'><pre>module.exports =
+  toDictionary : toDictionary
+  has          : has
+  amap         : amap
+  chain        : chain
+  avoid        : avoid
+  parallel     : parallel
+  webService   : webService
+  webPage      : webPage
+  memoize      : memoize
+  nothing      : nothing
+  returns      : returns
+  mono         : mono
+  prepare      : prepare</pre></div>
+        
+      
+      <div class="fleur">h</div>
+    </div>
+  </div>
+</body>
+</html>

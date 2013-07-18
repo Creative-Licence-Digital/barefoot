@@ -138,7 +138,7 @@ Use the awesome **lateral** module to do the job
         , nbProcesses
 
         unit.add(array).when () ->
-          done errors, results
+          done(errors, results) if done?
 
 **chain**
 
@@ -178,6 +178,13 @@ Wrap a void returning function to make it callable in a chain
         done null, params 
 
 
+**nothing**
+
+Do nothing but be defined
+
+    nothing = (params, done) -> done null, params
+
+
 **parallel**
 
 Execute asynchronous functions which take same inputs 
@@ -204,7 +211,7 @@ Execute asynchronous functions which take same inputs
 
     getRequestParams = (req) -> 
       params = {}
-      for field in ["body", "query", "params"]
+      for field in ["body", "query", "params", "files"]
         if req[field]?
           params = _.extend params, req[field]
       params.user = req.user if req.user?
@@ -228,6 +235,17 @@ Execute asynchronous functions which take same inputs
             else
               res.contentType contentType
               res.end data.toString()
+
+**webPagePost**
+
+    webPagePost = (method, redirect) ->
+      (req, res) ->
+        method getRequestParams(req), (err, data) ->
+          if err? 
+            res.send 500
+          else
+            res.redirect redirect
+
 
 **webPage**
 
@@ -314,6 +332,25 @@ HTTP response code and message can be used.
         res.send @code, @data
 
 
+**Returns in a specific property of the params object**
+
+
+    returns  = (method, property) -> 
+      (params, done) -> 
+        method params, (err, res) -> 
+          params[property] = res
+          done err, params
+
+**Combine with functions that only have a callback**
+
+    
+    mono  = (method) -> 
+      (params, done) -> 
+        method(done)
+
+    
+
+
 Export public methods
 ---------------------
 
@@ -336,5 +373,7 @@ Export public methods
       swap         : swap
       errorWrapper : errorWrapper
       validate     : validate
-
-
+      webPagePost  : webPagePost
+      nothing      : nothing
+      returns      : returns
+      mono         : mono

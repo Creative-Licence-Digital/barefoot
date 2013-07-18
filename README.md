@@ -138,7 +138,7 @@ amap = (func, nbProcesses = 1) ->
     , nbProcesses
 
     unit.add(array).when () ->
-      done errors, results
+      done(errors, results) if done?
 ```
 **chain**
 
@@ -178,6 +178,13 @@ avoid = (func) ->
     done null, params 
 ```
 
+**nothing**
+
+Do nothing but be defined
+```coffeescript
+nothing = (params, done) -> done null, params
+```
+
 **parallel**
 
 Execute asynchronous functions which take same inputs 
@@ -204,7 +211,7 @@ parallel = (funcs) ->
 ```coffeescript
 getRequestParams = (req) -> 
   params = {}
-  for field in ["body", "query", "params"]
+  for field in ["body", "query", "params", "files"]
     if req[field]?
       params = _.extend params, req[field]
   params.user = req.user if req.user?
@@ -229,6 +236,17 @@ webService = (method, contentType = "application/json") ->
           res.contentType contentType
           res.end data.toString()
 ```
+**webPagePost**
+```coffeescript
+webPagePost = (method, redirect) ->
+  (req, res) ->
+    method getRequestParams(req), (err, data) ->
+      if err? 
+        res.send 500
+      else
+        res.redirect redirect
+```
+
 **webPage**
 ```coffeescript
 webPage = (template, method) ->
@@ -314,27 +332,48 @@ class HttpError
     res.send @code, @data
 ```
 
-Export public methods
----------------------
+**Returns in a specific property of the params object**
+
 ```coffeescript
-module.exports =
-  toDictionary : toDictionary
-  has          : has
-  amap         : amap
-  chain        : chain
-  avoid        : avoid
-  select       : select
-  identity     : identity
-  parallel     : parallel
-  webService   : webService
-  webPage      : webPage
-  middleware   : middleware
-  memoize      : memoize
-  HttpError    : HttpError
-  check        : check
-  sequence     : sequence
-  swap         : swap
-  errorWrapper : errorWrapper
-  validate     : validate
+returns  = (method, property) -> 
+  (params, done) -> 
+    method params, (err, res) -> 
+      params[property] = res
+      done err, params
+```
+**Combine with functions that only have a callback**
+```coffeescript
+
+mono  = (method) -> 
+  (params, done) -> 
+    method(done)
+
+
 ```
 
+Export public methods
+---------------------
+
+    module.exports =
+      toDictionary : toDictionary
+      has          : has
+      amap         : amap
+      chain        : chain
+      avoid        : avoid
+      select       : select
+      identity     : identity
+      parallel     : parallel
+      webService   : webService
+      webPage      : webPage
+      middleware   : middleware
+      memoize      : memoize
+      HttpError    : HttpError
+      check        : check
+      sequence     : sequence
+      swap         : swap
+      errorWrapper : errorWrapper
+      validate     : validate
+      webPagePost  : webPagePost
+      nothing      : nothing
+      returns      : returns
+      mono         : mono
