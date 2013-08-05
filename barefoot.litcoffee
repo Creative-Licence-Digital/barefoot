@@ -18,12 +18,81 @@ Module dependencies
 
     lateral = require 'lateral'
     _       = require 'underscore'
+    check   = require './check'
 
 
 
 Let's get started
 ------------------
 
+**swap**
+
+Create a function of form (b, a, c...) from a function of form (a, b, c...).
+
+    swap = (func) ->
+      (b, a, c...) ->
+        func a, b, c...
+
+**errorWrapper**
+
+    errorWrapper = (handler) ->
+      (func) ->
+        (err, args...) ->
+          if err?
+            handler err
+          else
+            func args...
+
+**sequence**
+
+    sequence = (done) ->
+      queue = []
+      running = false
+      finished = false
+      result = null
+
+      run = ->
+        running = true
+
+        if queue.length > 0
+          func = queue[0]
+          queue = queue[1..]
+
+          func result, (err, res) ->
+            if err?
+              done err
+            else
+              result = res
+              run()
+        else
+          running = false
+          if finished
+            done null, result
+
+      add: (func) ->
+        queue.push func
+        if not running then run()
+
+      then: (func) ->
+        queue.push swap func
+        if not running then run()
+
+      end: ->
+        finished = true
+        if not running then run()
+
+      w: errorWrapper done
+
+**validate**
+
+    validate = (schema) ->
+      (params, done) ->
+        c = check params, schema
+        if c.ok
+          done null, params
+        else
+          done HttpError.badRequest
+            data: error: c.reason
 
 **toDictionary** 
 
@@ -78,6 +147,7 @@ Stop if one of the method has an error in the callback
 
     chain = (funcs) ->
       (val, done) ->
+        funcs = funcs() if _.isFunction funcs
         if funcs.length == 0
           done null, val
         else
@@ -86,6 +156,17 @@ Stop if one of the method has an error in the callback
               done err, res
             else
               chain(funcs[1..])(res, done)
+
+**select**
+
+    select = (func) ->
+      (params, done) ->
+        done null, func(params)
+
+**identity**
+
+    identity = (x, done) ->
+      done null, x
 
 **avoid**
 
@@ -142,8 +223,12 @@ Execute asynchronous functions which take same inputs
     webService = (method, contentType = "application/json") ->
       (req, res) ->
         method getRequestParams(req), (err, data) ->
-          if err? 
-            res.send 500
+          if err?
+            console.error err
+            if err instanceof HttpError
+              err.apply res
+            else
+              res.send 500
           else
             if contentType == "application/json"
               res.send data
@@ -174,13 +259,31 @@ Execute asynchronous functions which take same inputs
         else
           method getRequestParams(req), (err, data) ->
             if err?
-              res.send 500
+              if err instanceof HttpError
+                err.apply res
+              else
+                console.error err
+                res.send 500
             else
               data = {} if not data?
               data.user = req.user if req.user? and not data.user?
               data.__ = 
                 template : template
               res.render template, data
+
+**middleware**
+
+    middleware = (func) ->
+      (req, res, ok) ->
+        func req, (err, val) ->
+          if err?
+            if err instanceof HttpError
+              err.apply res
+            else
+              console.error err
+              res.send 500
+          else
+            ok()
 
 **memoryCache**
     
@@ -200,6 +303,33 @@ Execute asynchronous functions which take same inputs
                 expiration : (new Date()).setSeconds((new Date()).getSeconds() + seconds)
 
             done err, res
+
+**HttpError**
+
+When `webService` or `webPage` gets an instance of HttpError back as an error (in the callback), a custom
+HTTP response code and message can be used.
+
+    class HttpError
+      staticMethod = (code) ->
+        (params) -> new HttpError _.extend code: code, params
+
+      @badRequest          = staticMethod 400
+      @unauthorized        = staticMethod 401
+      @forbidden           = staticMethod 403
+      @notFound            = staticMethod 404
+      @internalServerError = staticMethod 500
+
+      code: 500
+      data: null
+      headers: null
+
+      constructor: (params) ->
+        {@code, @data, @headers} = params
+
+      apply: (res) ->
+        for key, value of @headers
+          res.set key, value
+        res.send @code, @data
 
 
 **Returns in a specific property of the params object**
@@ -230,12 +360,20 @@ Export public methods
       amap         : amap
       chain        : chain
       avoid        : avoid
+      select       : select
+      identity     : identity
       parallel     : parallel
       webService   : webService
       webPage      : webPage
-      webPagePost  : webPagePost
+      middleware   : middleware
       memoize      : memoize
+      HttpError    : HttpError
+      check        : check
+      sequence     : sequence
+      swap         : swap
+      errorWrapper : errorWrapper
+      validate     : validate
+      webPagePost  : webPagePost
       nothing      : nothing
       returns      : returns
       mono         : mono
-

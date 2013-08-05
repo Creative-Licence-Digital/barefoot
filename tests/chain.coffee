@@ -19,3 +19,4 @@ describe 'barefoot', ->
 			fn 1, (err, res) ->
 				assert.equal 32, res
 				assert.equal err, null
+
