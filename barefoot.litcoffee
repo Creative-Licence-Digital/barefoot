@@ -18,7 +18,7 @@ Module dependencies
 
     lateral = require 'lateral'
     _       = require 'underscore'
-    check   = require './check'
+    chubby  = require 'chubby'
 
 
 
@@ -87,7 +87,7 @@ Create a function of form (b, a, c...) from a function of form (a, b, c...).
 
     validate = (schema) ->
       (params, done) ->
-        c = check params, schema
+        c = chubby params, schema
         if c.ok
           done null, params
         else
@@ -368,7 +368,6 @@ Export public methods
       middleware   : middleware
       memoize      : memoize
       HttpError    : HttpError
-      check        : check
       sequence     : sequence
       swap         : swap
       errorWrapper : errorWrapper

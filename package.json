@@ -7,10 +7,11 @@
     "type": "git",
     "url": "git@github.com:MathieuGuillout/Barefoot.git"
   },
-  "author": "matTtam",
+  "author": "CLD",
   "license": "BSD",
   "dependencies": {
     "lateral": "~2.3.0",
-    "underscore": "~1.4.4"
+    "underscore": "~1.4.4",
+    "chubby": "0.0.0"
   }
 }
