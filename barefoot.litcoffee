@@ -1,7 +1,12 @@
-Barefoot
+barefoot
 ========
 
-Barefoot is a utility-belt library for Node for asynchronous functions manipulation
+**barefoot** is a library that assists with creating large asynchronous
+JavaScript web applications through the use of "barefoot functions", or
+*bfunctions*.
+
+Specifically, the library provides a bunch of useful bfunctions and convenience
+methods that produce bfunctions.
 
 To install it
 
@@ -10,30 +15,17 @@ To install it
 To use it
 
 `bf = require 'barefoot'`
-
    
 Module dependencies
 -------------------
 
-
     lateral = require 'lateral'
     _       = require 'underscore'
-    chubby  = require 'chubby'
 
+Error wrapper
+-------------
 
-
-Let's get started
-------------------
-
-**swap**
-
-Create a function of form (b, a, c...) from a function of form (a, b, c...).
-
-    swap = (func) ->
-      (b, a, c...) ->
-        func a, b, c...
-
-**errorWrapper**
+### errorWrapper
 
     errorWrapper = (handler) ->
       (func) ->
@@ -43,8 +35,79 @@ Create a function of form (b, a, c...) from a function of form (a, b, c...).
           else
             func args...
 
-**sequence**
+### swap
 
+Create a function of form (b, a, c...) from a function of form (a, b, c...).
+
+    swap = (func) ->
+      (b, a, c...) ->
+        func a, b, c...
+  
+Control flow bfunction builders
+-------------------------------
+
+Useful methods that create bfunctions.
+
+### chain
+
+    chain = (source) ->
+      (params, done) ->
+
+        bfuncs = if _.isFunction source then source() else source
+
+        if bfuncs.length == 0
+          done null, params
+        else
+          bfuncs[0] params, (err, res) ->
+            if err?
+              done err, res
+            else
+              chain(funcs[1..])(res, done)
+
+### parallel
+
+    parallel = (source) ->
+      (params, done) -> 
+
+        bfuncs = if _.isFunction source then source() else source
+        
+        i = 0
+        errors = []
+        results = []
+        tempDone = (err, result) ->
+          i++
+          errors.push(err) if err?
+          results.push result
+          if i == bfuncs.length
+            error = if errors.length > 0  then errors else null
+            done error, results
+
+        bfuncs.forEach (func) ->
+          func params, tempDone
+
+### amap
+
+    amap = (func, nbProcesses = 1) ->
+      (array, done) ->
+        results = []
+        errors = null
+        unit = lateral.create (complete, item) ->
+          func item, (err, res) ->
+            if err?
+              errors ?= []
+              errors.push(err)
+              results.push null
+            else
+              results.push res
+            complete()
+        , nbProcesses
+
+        unit.add(array).when () ->
+          done(errors, results) if done?
+
+### sequence
+
+    # todo: return a bfunction?
     sequence = (done) ->
       queue = []
       running = false
@@ -83,201 +146,176 @@ Create a function of form (b, a, c...) from a function of form (a, b, c...).
 
       w: errorWrapper done
 
-**validate**
 
-    validate = (schema) ->
-      (params, done) ->
-        c = chubby params, schema
-        if c.ok
-          done null, params
-        else
-          done HttpError.badRequest
-            data: error: c.reason
+General bfunction builders
+--------------------------
 
-**toDictionary** 
-
-Transform an array of object into a dictionary based on the property passed as a second param
-
-    toDictionary = (array, prop) ->
-      dictionary = {}
-      array.forEach (elt) -> 
-        dictionary[elt[prop]] = elt if elt? and elt[prop]?
-      return dictionary
-
-
-
-**has**
-
-Provides a function which test if parameters object has certain properties
-
-    has = (parameters) ->
-      (params, done) ->
-        ok = true
-        ok = (ok and params? and params[par]?) for par in parameters
-        done (if ok then null else new Error("Missing Parameters")), params
-
-
-**amap**
-
-Asynchronous map 
-Use the awesome **lateral** module to do the job
-
-    amap = (func, nbProcesses = 1) ->
-      (array, done) ->
-        results = []
-        errors = null
-        unit = lateral.create (complete, item) ->
-          func item, (err, res) ->
-            if err?
-              errors ?= []
-              errors.push(err)
-              results.push null
-            else
-              results.push res
-            complete()
-        , nbProcesses
-
-        unit.add(array).when () ->
-          done(errors, results) if done?
-
-**chain**
-
-Chain aynschronous methods with signature (val, done) -> done(err, result)
-Stop if one of the method has an error in the callback
-
-    chain = (funcs) ->
-      (val, done) ->
-        funcs = funcs() if _.isFunction funcs
-        if funcs.length == 0
-          done null, val
-        else
-          funcs[0] val, (err, res) =>
-            if err?
-              done err, res
-            else
-              chain(funcs[1..])(res, done)
-
-**select**
-
-    select = (func) ->
-      (params, done) ->
-        done null, func(params)
-
-**identity**
-
-    identity = (x, done) ->
-      done null, x
-
-**avoid**
-
-Wrap a void returning function to make it callable in a chain
+### avoid
 
     avoid = (func) ->
       (params, done) ->
         func(params)
         done null, params 
 
+### select
 
-**nothing**
+    select = (func) ->
+      (params, done) ->
+        done null, func(params)
 
-Do nothing but be defined
+Object bfunction builders
+-------------------------
 
-    nothing = (params, done) -> done null, params
+### get
 
+    get = (property) ->
+      select (params) -> params[property]
 
-**parallel**
+Array bfunction builders
+------------------------
 
-Execute asynchronous functions which take same inputs 
+### map
 
-    parallel = (funcs) ->
-      (params, done) -> 
-        
-        i = 0
-        errors = []
-        results = []
-        tempDone = (err, result) ->
-          i++
-          errors.push(err) if err?
-          results.push result
-          if i == funcs.length
-            error = if errors.length > 0  then errors else null
-            done error, results
+    map = (func) ->
+      select (list) -> list.map(func)
 
-        funcs.forEach (func) ->
-          func params, tempDone
+### reduce
 
+    reduce = (func) ->
+      select (list) -> list.reduce(func)
 
-**getRequestParams**
+Standard bfunctions
+-------------------
 
-    getRequestParams = (req) -> 
+### identity
+
+    identity = (params, done) ->
+      done null, params
+
+Web bfunctions
+--------------
+
+### HttpResponse
+
+    class HttpResponse
+      code: 200
+      data: null
+      headers: null
+      type: null
+      location: null
+      template: null
+
+      constructor: (params) ->
+        if _.isFunction params
+          @apply = params
+        else
+          {@code, @data, @headers, @type, @location} = params
+
+      apply: (res) ->
+        for key, value of @headers
+          res.set key, value
+
+        if @type?
+          res.type @type
+
+        if @location?
+          res.location @location
+
+        if @template?
+          res.render @template, @data
+        else
+          res.send @code, @data
+
+### getRequestParams
+
+    getRequestParams = (req) ->
+
       params = {}
-      for field in ["body", "query", "params", "files"]
-        if req[field]?
-          params = _.extend params, req[field]
-      params.user = req.user if req.user?
+
+      for field in ['body', 'query', 'params']
+        params = _.extend params, req[field]
+
+      for field in ['body', 'query', 'params', 'files', 'headers', 'cookies',
+        'path', 'host', 'protocol', 'secure', 'originalUrl', 'user']
+
+        if not field of params and req[field]?
+          Object.defineProperty params, field,
+            enumerable: false
+            configurable: true
+            writable: true
+            value: req[field]
+
       params
 
+### redirect
 
-**webService**
+    redirect = (location) ->
+      new HttpResponse code: 302, location: location
 
-    webService = (method, contentType = "application/json") ->
+### notFound
+
+    notFound = ->
+      new HttpResponse code: 404
+
+### webService
+
+    webService = (method) ->
       (req, res) ->
+
         method getRequestParams(req), (err, data) ->
+
           if err?
-            console.error err
-            if err instanceof HttpError
+            if err instanceof HttpResponse
               err.apply res
             else
+              console.error err
               res.send 500
           else
-            if contentType == "application/json"
-              res.send data
-            else
-              res.contentType contentType
-              res.end data.toString()
+            response =
+              if data instanceof HttpResponse
+                data
+              else if data?
+                new HttpResponse code: 200, data: data
+              else
+                new HttpResponse code: 404
 
-**webPagePost**
+            response.apply res
 
-    webPagePost = (method, redirect) ->
-      (req, res) ->
-        method getRequestParams(req), (err, data) ->
-          if err? 
-            res.send 500
-          else
-            res.redirect redirect
-
-
-**webPage**
+### webPage
 
     webPage = (template, method) ->
       (req, res) ->
+
         if not method? and template?
           data = getRequestParams(req)
-          data.__ = 
-            template : template
-          res.render template, data 
+          data.__ =
+            template: template
+          res.render template, data
         else
           method getRequestParams(req), (err, data) ->
+
             if err?
-              if err instanceof HttpError
+              if err instanceof HttpResponse
                 err.apply res
               else
                 console.error err
                 res.send 500
             else
-              data = {} if not data?
-              data.user = req.user if req.user? and not data.user?
-              data.__ = 
-                template : template
-              res.render template, data
+              response =
+                if data instanceof HttpResponse
+                  data
+                else if data?
+                  new HttpResponse code: 200, data: data
+                else
+                  new HttpResponse {template, data}
 
-**middleware**
+### middleware
 
     middleware = (func) ->
       (req, res, ok) ->
-        func req, (err, val) ->
+        func getRequestParams(req), (err, val) ->
           if err?
-            if err instanceof HttpError
+            if err instanceof HttpResponse
               err.apply res
             else
               console.error err
@@ -285,9 +323,8 @@ Execute asynchronous functions which take same inputs
           else
             ok()
 
-**memoryCache**
+### memoize
     
-
     memoize = (method, seconds) ->
       cache = {}
 
@@ -304,75 +341,27 @@ Execute asynchronous functions which take same inputs
 
             done err, res
 
-**HttpError**
-
-When `webService` or `webPage` gets an instance of HttpError back as an error (in the callback), a custom
-HTTP response code and message can be used.
-
-    class HttpError
-      staticMethod = (code) ->
-        (params) -> new HttpError _.extend code: code, params
-
-      @badRequest          = staticMethod 400
-      @unauthorized        = staticMethod 401
-      @forbidden           = staticMethod 403
-      @notFound            = staticMethod 404
-      @internalServerError = staticMethod 500
-
-      code: 500
-      data: null
-      headers: null
-
-      constructor: (params) ->
-        {@code, @data, @headers} = params
-
-      apply: (res) ->
-        for key, value of @headers
-          res.set key, value
-        res.send @code, @data
-
-
-**Returns in a specific property of the params object**
-
-
-    returns  = (method, property) -> 
-      (params, done) -> 
-        method params, (err, res) -> 
-          params[property] = res
-          done err, params
-
-**Combine with functions that only have a callback**
-
-    
-    mono  = (method) -> 
-      (params, done) -> 
-        method(done)
-
-    
-
-
 Export public methods
 ---------------------
 
-    module.exports =
-      toDictionary : toDictionary
-      has          : has
-      amap         : amap
-      chain        : chain
-      avoid        : avoid
-      select       : select
-      identity     : identity
-      parallel     : parallel
-      webService   : webService
-      webPage      : webPage
-      middleware   : middleware
-      memoize      : memoize
-      HttpError    : HttpError
-      sequence     : sequence
-      swap         : swap
-      errorWrapper : errorWrapper
-      validate     : validate
-      webPagePost  : webPagePost
-      nothing      : nothing
-      returns      : returns
-      mono         : mono
+    module.exports = {
+      errorWrapper
+      swap
+      chain
+      parallel
+      amap
+      sequence
+      avoid
+      select
+      get
+      map
+      reduce
+      identity
+      HttpResponse
+      redirect
+      notFound
+      webService
+      webPage
+      middleware
+      memoize
+    }
