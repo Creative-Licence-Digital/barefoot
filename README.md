@@ -1,9 +1,35 @@
 Barefoot
 ========
 
-Barefoot is a utility-belt library for Node for asynchronous functions manipulation
+**barefoot** is a library that assists with the creation of large asynchronous
+JavaScript applications, and, in particular, web applications using express.js.
 
-To install it
+It achieves this by encouraging the use of smaller, composable async functions
+with a particular form called *bfunction*s.
+
+Sample
+------
+
+```coffeescript
+app.get '/shortener/:hash', bf.webMethod(shortener)
+
+shortener = bf.chain -> [
+  getUrl
+  redirect
+]
+
+getUrl = ({ hash }, done) ->
+  Url.findOne { hash }, done
+
+redirect = (url, done) ->
+  if url?
+    done null, bf.redirect url.location
+  else
+    done null, bf.notFound()
+```
+
+Installing
+----------
 
 `npm install barefoot`
 
@@ -11,369 +37,301 @@ To use it
 
 `bf = require 'barefoot'`
 
-   
-Module dependencies
--------------------
+Intro
+-----
+
+### bfunctions
+
+A *bfunction* is a function of the form
+`fn(params: *, done: fn(err: *, res: *))`. That is, it is a function which takes
+some parameters, performs some computation and then executes a callback function
+with either the result of that computation or some error that occured.
+
+### Errors
+
+When calling an asynchronous function, resulting errors must always be handled.
+barefoot provides several functions that make this less cumbersome.
+
+We can use `bf.errorWrapper` to avoid writing error handling code in our
+callbacks. The error will be passed up one level.
 
 ```coffeescript
-lateral = require 'lateral'
-_       = require 'underscore'
-check   = require './check'
+getState = ({ id }, done) ->
+  User.findById id, (err, user) ->
+    if err? then return done err
+    Address.findById user?.addressId, (err, address) ->
+      if err? then return done err
+      done null, address?.state
 ```
 
-
-Let's get started
-------------------
-
-**swap**
-
-Create a function of form (b, a, c...) from a function of form (a, b, c...).
-```coffeescript
-swap = (func) ->
-  (b, a, c...) ->
-    func a, b, c...
-```
-**errorWrapper**
-```coffeescript
-errorWrapper = (handler) ->
-  (func) ->
-    (err, args...) ->
-      if err?
-        handler err
-      else
-        func args...
-```
-**sequence**
-```coffeescript
-sequence = (done) ->
-  queue = []
-  running = false
-  finished = false
-  result = null
-
-  run = ->
-    running = true
-
-    if queue.length > 0
-      func = queue[0]
-      queue = queue[1..]
-
-      func result, (err, res) ->
-        if err?
-          done err
-        else
-          result = res
-          run()
-    else
-      running = false
-      if finished
-        done null, result
-
-  add: (func) ->
-    queue.push func
-    if not running then run()
-
-  then: (func) ->
-    queue.push swap func
-    if not running then run()
-
-  end: ->
-    finished = true
-    if not running then run()
-
-  w: errorWrapper done
-```
-**validate**
-```coffeescript
-validate = (schema) ->
-  (params, done) ->
-    c = check params, schema
-    if c.ok
-      done null, params
-    else
-      done HttpError.badRequest
-        data: error: c.reason
-```
-**toDictionary** 
-
-Transform an array of object into a dictionary based on the property passed as a second param
-```coffeescript
-toDictionary = (array, prop) ->
-  dictionary = {}
-  array.forEach (elt) -> 
-    dictionary[elt[prop]] = elt if elt? and elt[prop]?
-  return dictionary
-```
-
-
-**has**
-
-Provides a function which test if parameters object has certain properties
-```coffeescript
-has = (parameters) ->
-  (params, done) ->
-    ok = true
-    ok = (ok and params? and params[par]?) for par in parameters
-    done (if ok then null else new Error("Missing Parameters")), params
-```
-
-**amap**
-
-Asynchronous map 
-Use the awesome **lateral** module to do the job
-```coffeescript
-amap = (func, nbProcesses = 1) ->
-  (array, done) ->
-    results = []
-    errors = null
-    unit = lateral.create (complete, item) ->
-      func item, (err, res) ->
-        if err?
-          errors ?= []
-          errors.push(err)
-          results.push null
-        else
-          results.push res
-        complete()
-    , nbProcesses
-
-    unit.add(array).when () ->
-      done(errors, results) if done?
-```
-**chain**
-
-Chain aynschronous methods with signature (val, done) -> done(err, result)
-Stop if one of the method has an error in the callback
-```coffeescript
-chain = (funcs) ->
-  (val, done) ->
-    funcs = funcs() if _.isFunction funcs
-    if funcs.length == 0
-      done null, val
-    else
-      funcs[0] val, (err, res) =>
-        if err?
-          done err, res
-        else
-          chain(funcs[1..])(res, done)
-```
-**select**
-```coffeescript
-select = (func) ->
-  (params, done) ->
-    done null, func(params)
-```
-**identity**
-```coffeescript
-identity = (x, done) ->
-  done null, x
-```
-**avoid**
-
-Wrap a void returning function to make it callable in a chain
-```coffeescript
-avoid = (func) ->
-  (params, done) ->
-    func(params)
-    done null, params 
-```
-
-**nothing**
-
-Do nothing but be defined
-```coffeescript
-nothing = (params, done) -> done null, params
-```
-
-**parallel**
-
-Execute asynchronous functions which take same inputs 
-```coffeescript
-parallel = (funcs) ->
-  (params, done) -> 
-    
-    i = 0
-    errors = []
-    results = []
-    tempDone = (err, result) ->
-      i++
-      errors.push(err) if err?
-      results.push result
-      if i == funcs.length
-        error = if errors.length > 0  then errors else null
-        done error, results
-
-    funcs.forEach (func) ->
-      func params, tempDone
-```
-
-**getRequestParams**
-```coffeescript
-getRequestParams = (req) -> 
-  params = {}
-  for field in ["body", "query", "params", "files"]
-    if req[field]?
-      params = _.extend params, req[field]
-  params.user = req.user if req.user?
-  params
-```
-
-**webService**
-```coffeescript
-webService = (method, contentType = "application/json") ->
-  (req, res) ->
-    method getRequestParams(req), (err, data) ->
-      if err?
-        console.error err
-        if err instanceof HttpError
-          err.apply res
-        else
-          res.send 500
-      else
-        if contentType == "application/json"
-          res.send data
-        else
-          res.contentType contentType
-          res.end data.toString()
-```
-**webPagePost**
-```coffeescript
-webPagePost = (method, redirect) ->
-  (req, res) ->
-    method getRequestParams(req), (err, data) ->
-      if err? 
-        res.send 500
-      else
-        res.redirect redirect
-```
-
-**webPage**
-```coffeescript
-webPage = (template, method) ->
-  (req, res) ->
-    if not method? and template?
-      data = getRequestParams(req)
-      data.__ = 
-        template : template
-      res.render template, data 
-    else
-      method getRequestParams(req), (err, data) ->
-        if err?
-          if err instanceof HttpError
-            err.apply res
-          else
-            console.error err
-            res.send 500
-        else
-          data = {} if not data?
-          data.user = req.user if req.user? and not data.user?
-          data.__ = 
-            template : template
-          res.render template, data
-```
-**middleware**
-```coffeescript
-middleware = (func) ->
-  (req, res, ok) ->
-    func req, (err, val) ->
-      if err?
-        if err instanceof HttpError
-          err.apply res
-        else
-          console.error err
-          res.send 500
-      else
-        ok()
-```
-**memoryCache**
-    
-```coffeescript
-memoize = (method, seconds) ->
-  cache = {}
-
-  (params, done) ->
-    hash = JSON.stringify(params)
-    if cache[hash]? and cache[hash].expiration > new Date()
-      done null, cache[hash].result
-    else
-      method params, (err, res) ->
-        if not err?
-          cache[hash] =
-            result : res
-            expiration : (new Date()).setSeconds((new Date()).getSeconds() + seconds)
-
-        done err, res
-```
-**HttpError**
-
-When `webService` or `webPage` gets an instance of HttpError back as an error (in the callback), a custom
-HTTP response code and message can be used.
-```coffeescript
-class HttpError
-  staticMethod = (code) ->
-    (params) -> new HttpError _.extend code: code, params
-
-  @badRequest          = staticMethod 400
-  @unauthorized        = staticMethod 401
-  @forbidden           = staticMethod 403
-  @notFound            = staticMethod 404
-  @internalServerError = staticMethod 500
-
-  code: 500
-  data: null
-  headers: null
-
-  constructor: (params) ->
-    {@code, @data, @headers} = params
-
-  apply: (res) ->
-    for key, value of @headers
-      res.set key, value
-    res.send @code, @data
-```
-
-**Returns in a specific property of the params object**
+Can be rewritten:
 
 ```coffeescript
-returns  = (method, property) -> 
-  (params, done) -> 
-    method params, (err, res) -> 
-      params[property] = res
-      done err, params
+getState = ({ id }, done) ->
+  w = bf.errorWrapper done
+  User.findById id, w (user) ->
+    Address.findById user?.addressId, w (address) ->
+      done null, address?.state
 ```
-**Combine with functions that only have a callback**
+
+### Sequences
+
+To avoid heavily indented code ("callback hell"), we can use `bf.sequence` to
+flatten our method.
+
+The example above can be rewritten, with `bf.sequence`:
+
 ```coffeescript
+getState = ({ id }, done) ->
+  seq = bf.sequence done
 
-mono  = (method) -> 
-  (params, done) -> 
-    method(done)
+  seq.then (next) ->
+    User.findById id, next
 
+  seq.then (next, user) ->
+    Address.findById user?.addressId, next
 
+  seq.then (next, address) ->
+    next null, address?.state
+
+  seq.end()
 ```
 
-Export public methods
----------------------
+Or, if you prefer being explicit and mutating some function-level state:
 
-    module.exports =
-      toDictionary : toDictionary
-      has          : has
-      amap         : amap
-      chain        : chain
-      avoid        : avoid
-      select       : select
-      identity     : identity
-      parallel     : parallel
-      webService   : webService
-      webPage      : webPage
-      middleware   : middleware
-      memoize      : memoize
-      HttpError    : HttpError
-      check        : check
-      sequence     : sequence
-      swap         : swap
-      errorWrapper : errorWrapper
-      validate     : validate
-      webPagePost  : webPagePost
-      nothing      : nothing
-      returns      : returns
-      mono         : mono
+```coffeescript
+getState = ({ id }, done) ->
+  seq = bf.sequence done
+
+  [user, address] = []
+
+  seq.then (next) ->
+    User.findById id, seq.w (res) ->
+      user = res
+      next()
+
+  seq.then (next) ->
+    Address.findById user?.addressId, seq.w (res) ->
+      address = res
+      next()
+
+  seq.then (next) ->
+    done null, address?.state
+```
+
+`bf.sequence` will end the sequence if an error is passed to `next`.
+
+### Chaining
+
+Often a better approach to sequencing, however, is to break the method up into
+smaller, more manageable chunks and chain them together.
+
+The example above can be rewritten, with `bf.chain`:
+
+```coffeescript
+getState = bf.chain -> [
+  getUser
+  getAddress
+  bf.get 'state'
+]
+
+getUser = ({ id }, done) ->
+  User.findById id, done
+
+getAddress = (user, done) ->
+  Address.findById user?.addressId, done
+```
+
+`bf.chain` will automatically handle errors and stop execution if one occurs,
+propogating it up to the caller.
+
+barefoot contains several *bfunction*s that are useful when chained, such as
+`bf.get`, used above.
+
+Often it useful to to run two *bfunction*s concurrently in a chain.
+`bf.parallel` achieves this nicely:
+
+```coffeescript
+getStateAndGroupName = bf.chain -> [
+  getUser
+  bf.parallel [
+    bf.chain [
+      getAddress
+      bf.get 'state'
+    ]
+    bf.chain [
+      getGroup
+      bf.get 'name'
+    ]
+  ]
+  bf.select ([state, name]) -> "State: {state} Name: {name}"
+
+getUser = ({ id }, done) ->
+  User.findById id, done
+
+getAddress = (user, done) ->
+  Address.findById user?.addressId, done
+
+getGroup = (user, done) ->
+  Group.findById user?.groupId, done
+```
+
+### Web methods
+
+barefoot provides several methods that assists with the creation of web servers
+and web sites using *bfunction*s.
+
+These methods take a *bfunction* and run it with a HTTP request object as the
+input. The output is then coerced to a `bf.HttpResponse` and this is used to
+create an express.js callback function.
+
+For example, this is a simple web application that echos the message given to
+it:
+
+```coffeescript
+app.get '/echo/:message', bf.webService(echo)
+
+echo = ({ message }, done) ->
+  done null, message
+```
+
+`bf.webService` invokes the `echo` method with all of the request's URL, query
+and POST parameters. The result of `echo` - a string - is coereced by
+`bf.webService` into a 200 OK response that has the string and nothing else.
+
+The following method demonstrates a few more complicated features by moving the
+uploaded file 'image' and then redirecting to the page given in the X-Redirect
+header:
+
+```coffeescript
+app.post '/foo', bf.webService(foo)
+
+foo = (params, done) ->
+  w = bf.errorWrapper done
+
+  path = params.files.image.path
+  fs.rename path, "images/{path.basename(path)}", w ->
+
+    location = params.headers['X-Redirect'] ? '/'
+    done null, bf.redirect location
+```
+
+If an error occurs during the *bfunction* that `bf.webService` executes, then a
+HTTP 500 response is returned. If null is returned from the *bfunction*, then
+HTTP 404 is returned.
+
+`bf.webPage` performs a similar task, except the result of the *bfunction* is
+passed to a view template. The *bfunction* is also optional, allowing 'static'
+pages.
+
+```coffeescript
+app.get '/', bf.webPage('index')
+app.get '/user/:id', bf.webPage('user', getUser)
+
+getUser = ({ id }, done) ->
+  User.findById id, done
+```
+
+API Reference
+-------------
+
+### Control flow bfunction builders
+
+* **bf.chain**
+  
+  Composes bfunctions together, running each in sequence and giving the result
+  of each function to the input of the next. If one bfunction in the chain has
+  an error, the chain execution stops and the error is propogated up to the
+  caller of the chain.
+
+* **bf.parallel**
+  
+  Runs multiple bfunctions at the same time with the same input. An array of the
+  results and errors is then returned.
+
+* **bf.amap**
+
+* **bf.sequence**
+
+### General bfunction builders
+
+* **bf.avoid**
+
+  Wraps a function which does not return anything and has no callback in a
+  bfunction callable in a chain.
+
+* **bf.select**
+
+  Turns a regular function into a bfunction.
+
+### Object bfunction builders
+
+* **bf.get**
+
+  Creates a bfunction that retrieves the given property from its parameters.
+
+### Array bfunction builders
+
+* **bf.map**
+
+  Creates a bfunction that, given an array, produces a new array according to
+  some mapping function.
+
+* **bf.reduce**
+
+  Creates a bfunction that, given an array, produces a single value given some
+  reduction function.
+
+### Standard bfunctions
+
+* **bf.identity**
+
+  bfunction that does nothing (returns input).
+
+### Web methods
+
+* **bf.HttpResponse**
+
+  A class which encodes possibly HTTP responses applied to an express.js
+  response.
+
+* **bf.redirect**
+
+  Convenience method that creates a `bf.HttpResponse` which redirects to the
+  given url.
+
+* **bf.notFound**
+
+  Convenience method that creates a `bf.HttpResponse` with HTTP code 404.
+
+* **bf.webService**
+
+  Takes a *bfunction* and returns an express.js callback which executes the
+  *bfunction* with the web request as input and response as output.
+
+* **bf.webPage**
+
+  Takes a *bfunction* and returns an express.js callback which executes the
+  *bfunction* with the web request as input. The output of the *bfunction* is
+  pased into the given view template.
+
+* **bf.middleware**
+
+  Takes a *bfunction* and reeturns an express.js middleware callback which runs
+  the *bfunction* and aborts the express.js handler if there was an error.
+
+* **bf.memoize**
+
+  Takes a *bfunction* and a number of seconds and gives back a *bfunction* that
+  has its output cached for the given number of seconds based on the input.
+
+Licence
+-------
+
+TODO
+
+Authors
+-------
+
+Written by Mathieu Guillout and Robert Anderson-Butterworth at [Creative Licence
+Digital](://www.creativelicencedigital.com/).

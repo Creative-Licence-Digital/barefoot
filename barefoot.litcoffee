@@ -50,6 +50,11 @@ Useful methods that create bfunctions.
 
 ### chain
 
+Composes bfunctions together, running each in sequence and giving the result
+of each function to the input of the next. If one bfunction in the chain has
+an error, the chain execution stops and the error is propogated up to the
+caller of the chain.
+
     chain = (source) ->
       (params, done) ->
 
@@ -65,6 +70,9 @@ Useful methods that create bfunctions.
               chain(funcs[1..])(res, done)
 
 ### parallel
+
+Runs multiple bfunctions at the same time with the same input. An array of the
+results and errors is then returned.
 
     parallel = (source) ->
       (params, done) -> 
@@ -152,12 +160,17 @@ General bfunction builders
 
 ### avoid
 
+Wraps a function which does not return anything and has no callback in a
+bfunction callable in a chain.
+
     avoid = (func) ->
       (params, done) ->
         func(params)
         done null, params 
 
 ### select
+
+Turns a regular function into a bfunction.
 
     select = (func) ->
       (params, done) ->
@@ -168,6 +181,8 @@ Object bfunction builders
 
 ### get
 
+Creates a bfunction that retrieves the given property from its parameters.
+
     get = (property) ->
       select (params) -> params[property]
 
@@ -176,10 +191,16 @@ Array bfunction builders
 
 ### map
 
+Creates a bfunction that, given an array, produces a new array according to
+some mapping function.
+
     map = (func) ->
       select (list) -> list.map(func)
 
 ### reduce
+
+Creates a bfunction that, given an array, produces a single value given some
+reduction function.
 
     reduce = (func) ->
       select (list) -> list.reduce(func)
@@ -189,13 +210,18 @@ Standard bfunctions
 
 ### identity
 
+bfunction that does nothing (returns input).
+
     identity = (params, done) ->
       done null, params
 
-Web bfunctions
+Web methods
 --------------
 
 ### HttpResponse
+
+A class which encodes possibly HTTP responses applied to an express.js
+response.
 
     class HttpResponse
       code: 200
@@ -249,15 +275,23 @@ Web bfunctions
 
 ### redirect
 
+Convenience method that creates a `bf.HttpResponse` which redirects to the
+given url.
+
     redirect = (location) ->
       new HttpResponse code: 302, location: location
 
 ### notFound
 
+Convenience method that creates a `bf.HttpResponse` with HTTP code 404.
+
     notFound = ->
       new HttpResponse code: 404
 
 ### webService
+
+Takes a *bfunction* and returns an express.js callback which executes the
+*bfunction* with the web request as input and response as output.
 
     webService = (method) ->
       (req, res) ->
@@ -282,6 +316,10 @@ Web bfunctions
             response.apply res
 
 ### webPage
+
+Takes a *bfunction* and returns an express.js callback which executes the
+*bfunction* with the web request as input. The output of the *bfunction* is
+pased into the given view template.
 
     webPage = (template, method) ->
       (req, res) ->
@@ -310,6 +348,9 @@ Web bfunctions
                   new HttpResponse {template, data}
 
 ### middleware
+  
+Takes a *bfunction* and reeturns an express.js middleware callback which runs
+the *bfunction* and aborts the express.js handler if there was an error.
 
     middleware = (func) ->
       (req, res, ok) ->
@@ -325,6 +366,9 @@ Web bfunctions
 
 ### memoize
     
+Takes a *bfunction* and a number of seconds and gives back a *bfunction* that
+has its output cached for the given number of seconds based on the input.
+
     memoize = (method, seconds) ->
       cache = {}
 
