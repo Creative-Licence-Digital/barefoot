@@ -328,7 +328,7 @@ API Reference
 Licence
 -------
 
-TODO
+MIT
 
 Authors
 -------
