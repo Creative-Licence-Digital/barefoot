@@ -334,4 +334,4 @@ Authors
 -------
 
 Written by Mathieu Guillout and Robert Anderson-Butterworth at [Creative Licence
-Digital](://www.creativelicencedigital.com/).
+Digital](http://www.creativelicencedigital.com/).
