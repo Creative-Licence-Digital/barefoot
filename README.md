@@ -5,7 +5,7 @@ Barefoot
 JavaScript applications, and, in particular, web applications using express.js.
 
 It achieves this by encouraging the use of smaller, composable async functions
-with a particular form called *bfunction*s.
+with a particular form called *bfunctions*.
 
 Sample
 ------
@@ -145,10 +145,10 @@ getAddress = (user, done) ->
 `bf.chain` will automatically handle errors and stop execution if one occurs,
 propogating it up to the caller.
 
-barefoot contains several *bfunction*s that are useful when chained, such as
+barefoot contains several *bfunctions* that are useful when chained, such as
 `bf.get`, used above.
 
-Often it useful to to run two *bfunction*s concurrently in a chain.
+Often it useful to to run two *bfunctions* concurrently in a chain.
 `bf.parallel` achieves this nicely:
 
 ```coffeescript
@@ -179,7 +179,7 @@ getGroup = (user, done) ->
 ### Web methods
 
 barefoot provides several methods that assists with the creation of web servers
-and web sites using *bfunction*s.
+and web sites using *bfunctions*.
 
 These methods take a *bfunction* and run it with a HTTP request object as the
 input. The output is then coerced to a `bf.HttpResponse` and this is used to
