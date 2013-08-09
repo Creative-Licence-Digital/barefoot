@@ -325,6 +325,12 @@ API Reference
   Takes a *bfunction* and a number of seconds and gives back a *bfunction* that
   has its output cached for the given number of seconds based on the input.
 
+* **bf.validate**
+
+  Takes a schema and gives back a *bfunction* that validates its input according
+  to the schema, throwing a HTTP 400 (Bad Request) error if the params are
+  invalid.
+
 Licence
 -------
 

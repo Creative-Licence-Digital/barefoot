@@ -19,8 +19,9 @@ To use it
 Module dependencies
 -------------------
 
-    lateral = require 'lateral'
     _       = require 'underscore'
+    lateral = require 'lateral'
+    chubby  = require 'chubby'
 
 Error wrapper
 -------------
@@ -385,6 +386,23 @@ has its output cached for the given number of seconds based on the input.
 
             done err, res
 
+### validate
+
+Creates a *bfunction* that validates its parameters according to the given
+schema, using the *chubby* library. If the params are not valid, the given error
+object is raised from the *bfunction*. The default error is a HTTP bad request.
+
+    validate = (schema, error = null) ->
+      (params, done) ->
+        c = chubby.check params, schema
+        if c.ok
+          done null, params
+        else
+          error ?= new HttpResponse
+            code: 400
+            data: error: c.reason
+          done error, params
+
 Export public methods
 ---------------------
 
@@ -408,4 +426,5 @@ Export public methods
       webPage
       middleware
       memoize
+      validate
     }
