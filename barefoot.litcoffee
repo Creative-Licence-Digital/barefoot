@@ -59,16 +59,28 @@ caller of the chain.
     chain = (source) ->
       (params, done) ->
 
-        bfuncs = if _.isFunction source then source() else source
+        items = if _.isFunction source then source() else source
 
-        if bfuncs.length == 0
+        if items.length is 0
           done null, params
         else
-          bfuncs[0] params, (err, res) ->
+          item = items[0]
+
+          bfunc =
+            if _.isFunction item
+              item
+            else if _.isObject item
+              chain (into key, func for key, func of item)
+            else if _.isArray item
+              chain item
+            else
+              identity
+
+          bfunc params, (err, res) ->
             if err?
               done err, res
             else
-              chain(funcs[1..])(res, done)
+              chain(items[1..])(res, done)
 
 ### parallel
 
@@ -176,6 +188,18 @@ Turns a regular function into a bfunction.
     select = (func) ->
       (params, done) ->
         done null, func(params)
+
+### into
+
+Create a bfunction that executes a given bfunction and stores the result into a
+given parameter.
+
+    into = (key, func) ->
+      (params, done) ->
+        func params, (err, res) ->
+          params ?= {}
+          params[key] = res
+          done err, params
 
 Object bfunction builders
 -------------------------
