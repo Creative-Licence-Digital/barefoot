@@ -197,7 +197,7 @@ given parameter.
     into = (key, func) ->
       (params, done) ->
         func params, (err, res) ->
-          params ?= {}
+          params = {} if not(_.isObject(params)) or not params?
           params[key] = res
           done err, params
 
@@ -451,4 +451,5 @@ Export public methods
       middleware
       memoize
       validate
+      into
     }
