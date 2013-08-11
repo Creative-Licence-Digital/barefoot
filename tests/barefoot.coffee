@@ -8,7 +8,51 @@ multBy = (i) ->
 double = multBy(2)
 triple = multBy(3)
 
+giveError = (params, done) ->
+  done 'error'
+
+dog =
+  name: 'Fido'
+  age: 7
+  address:
+    street: 'The Corso'
+    suburb: 'Manly'
+
 describe 'barefoot', ->
+  describe 'errorWrapper', ->
+
+    it 'should handle error', ->
+
+      callback = (err, res) ->
+        assert err is 'error'
+
+      w = bf.errorWrapper callback
+
+      giveError null, w (res) ->
+        assert false
+
+    it 'should not do anything to non-errors', ->
+
+      callback = (err, res) ->
+        assert false
+
+      w = bf.errorWrapper callback
+
+      double 10, w (res) ->
+        assert true
+
+  describe 'swap', ->
+
+    it 'should swap args', ->
+
+      fn = (a, b, c, d) ->
+        assert.equal a, 1
+        assert.equal b, 2
+        assert.equal c, 3
+        assert.equal d, 4
+
+      bf.swap(fn) 2, 1, 3, 4
+
 	describe 'chain', ->
 
 
@@ -79,4 +123,36 @@ describe 'barefoot', ->
       fn 1, (err, res) -> 
         assert.equal 2, res.double
 
-    
+  describe 'get', ->
+
+    it 'should get a param of an object', ->
+
+      bf.get('age') dog, (err, res) ->
+        assert.equal res, 7
+
+  describe 'map', ->
+
+    it 'should map a bfunct that returns a list', ->
+
+      fn = (i) -> i * 2
+      bfn = bf.map fn
+
+      bfn [1, 2, 3, 4], (err, res) ->
+        assert.equal res.reduce((a, b) -> a + b), 20
+
+  describe 'reduce', ->
+
+    it 'should reduce a bfunct that returns a list', ->
+
+      fn = (a, b) -> a + b
+      bfn = bf.reduce fn
+
+      bfn [1, 2, 3, 4], (err, res) ->
+        assert.equal res, 10
+
+  describe 'identity', ->
+
+    it 'should act as the identity function', ->
+
+      bf.identity 12, (err, res) ->
+        assert.equal res, 12
