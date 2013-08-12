@@ -7,6 +7,8 @@ JavaScript applications, and, in particular, web applications using express.js.
 It achieves this by encouraging the use of smaller, composable async functions
 with a particular form called *bfunctions*.
 
+You can read more about the library in this [blog entry](http://creativelicencedigital.com/articles/introducing-barefoot/).
+
 Sample
 ------
 
