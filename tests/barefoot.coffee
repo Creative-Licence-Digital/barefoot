@@ -1,22 +1,7 @@
 assert = require 'assert'
 bf     = require '../barefoot'
+testUtils = require './utils'
 
-
-multBy = (i) -> 
-  (x, done) -> done null, x * i
-
-double = multBy(2)
-triple = multBy(3)
-
-giveError = (params, done) ->
-  done 'error'
-
-dog =
-  name: 'Fido'
-  age: 7
-  address:
-    street: 'The Corso'
-    suburb: 'Manly'
 
 describe 'barefoot', ->
   describe 'errorWrapper', ->
@@ -27,6 +12,9 @@ describe 'barefoot', ->
         assert err is 'error'
 
       w = bf.errorWrapper callback
+      
+      giveError = (params, done) ->
+        done 'error'
 
       giveError null, w (res) ->
         assert false
@@ -38,7 +26,7 @@ describe 'barefoot', ->
 
       w = bf.errorWrapper callback
 
-      double 10, w (res) ->
+      testUtils.double 10, w (res) ->
         assert true
 
   describe 'swap', ->
@@ -58,12 +46,12 @@ describe 'barefoot', ->
 
 		it 'should return 32', ->
 			fn = bf.chain [
-				double
-				double
+				testUtils.double
+				testUtils.double
 				bf.chain [
-					double
-					double
-					double
+					testUtils.double
+					testUtils.double
+					testUtils.double
 				]
 			]
 
@@ -76,8 +64,8 @@ describe 'barefoot', ->
     
     it 'should return an array whom total is 5', -> 
       fn = bf.parallel [
-        double
-        triple
+        testUtils.double
+        testUtils.triple
       ]
 
       fn 1, (err, res) -> 
@@ -88,7 +76,7 @@ describe 'barefoot', ->
     
     it 'should apply a bfunc method to an array of values', ->
     
-      fn = bf.amap double
+      fn = bf.amap testUtils.double
 
       fn [1, 2, 3, 4], (err, res) -> 
         assert.equal 20, res.reduce ((a, b) -> a + b), 0
@@ -119,13 +107,20 @@ describe 'barefoot', ->
     
     it 'should execute a bfunc and stores the result in a given param', ->
     
-      fn = bf.into("double", double)
+      fn = bf.into("double", testUtils.double)
       fn 1, (err, res) -> 
         assert.equal 2, res.double
 
   describe 'get', ->
 
     it 'should get a param of an object', ->
+
+      dog =
+        name: 'Fido'
+        age: 7
+        address:
+          street: 'The Corso'
+          suburb: 'Manly'
 
       bf.get('age') dog, (err, res) ->
         assert.equal res, 7
