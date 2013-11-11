@@ -289,12 +289,11 @@ response.
       for field in ['body', 'query', 'params', 'files', 'headers', 'cookies',
         'path', 'host', 'protocol', 'secure', 'originalUrl', 'user']
 
-        if not field of params and req[field]?
-          Object.defineProperty params, field,
-            enumerable: false
-            configurable: true
-            writable: true
-            value: req[field]
+        Object.defineProperty params, field,
+          enumerable: false
+          configurable: true
+          writable: true
+          value: req[field]
 
       params
 
