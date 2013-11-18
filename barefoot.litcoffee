@@ -147,6 +147,8 @@ Execute asynchronous functions which take same inputs
           else
             if contentType == "application/json"
               res.send data
+            else if contentType == "jsonp"
+              res.jsonp data
             else
               res.contentType contentType
               res.end data.toString()
