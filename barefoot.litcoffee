@@ -192,6 +192,28 @@ Execute asynchronous functions which take same inputs
 
             done err, res
 
+**Returns in a specific property of the params object**
+
+
+    returns  = (method, property) ->
+      (params, done) ->
+        method params, (err, res) ->
+          params[property] = res
+          done err, params
+
+**Combine with functions that only have a callback**
+
+
+    mono  = (method) ->
+      (params, done) ->
+        method(done)
+
+
+**Prepare**
+
+    prepare = (method, first_arg) ->
+      (params, done) ->
+        method first_arg, done
 
 Export public methods
 ---------------------
@@ -207,4 +229,6 @@ Export public methods
       webPage      : webPage
       memoize      : memoize
       nothing      : nothing
-
+      returns      : returns
+      mono         : mono
+      prepare      : prepare
