@@ -137,6 +137,21 @@ Execute asynchronous functions which take same inputs
       params
 
 
+
+**webPagePost**
+
+    webPagePost = (method, redirect) ->
+      (req, res) ->
+        method getRequestParams(req), (err, data) ->
+          if err?
+            res.send 500
+          
+          data = {} if not data?
+          data.user = req.user if req.user? and not data.user?
+
+          res.redirect redirect 
+
+
 **webService**
 
     webService = (method, contentType = "application/json") ->
@@ -166,12 +181,14 @@ Execute asynchronous functions which take same inputs
           method getRequestParams(req), (err, data) ->
             if err?
               res.send 500
-            else
+            else if template?
               data = {} if not data?
               data.user = req.user if req.user? and not data.user?
               data.__ = 
                 template : template
               res.render template, data
+            else
+              res.send data
 
 **memoryCache**
     
@@ -227,6 +244,7 @@ Export public methods
       parallel     : parallel
       webService   : webService
       webPage      : webPage
+      webPagePost  : webPagePost
       memoize      : memoize
       nothing      : nothing
       returns      : returns
