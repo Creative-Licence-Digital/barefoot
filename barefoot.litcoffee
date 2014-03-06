@@ -194,6 +194,20 @@ Execute asynchronous functions which take same inputs
             else
               res.send data
 
+**flashdata**
+
+
+    flashdata = ->
+      (req, res, next) ->
+        _flashdata = req.session.flashdata
+        delete req.session.flashdata
+
+        Object.defineProperty req, "flashdata",
+          get: -> _flashdata
+          set: (newdata) -> req.session.flashdata = _flashdata = newdata
+
+        next()
+
 **memoryCache**
 
 
