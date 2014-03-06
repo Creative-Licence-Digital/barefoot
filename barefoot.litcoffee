@@ -263,6 +263,7 @@ Export public methods
       webService   : webService
       webPage      : webPage
       webPagePost  : webPagePost
+      flashdata    : flashdata
       memoize      : memoize
       nothing      : nothing
       returns      : returns
