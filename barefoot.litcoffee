@@ -25,6 +25,20 @@ Let's get started
 ------------------
 
 
+**error**
+
+Barefoot error class used to construct consistently formatted error responses
+
+    bfError = class BFError
+      constructor: (errorCode, message, statusCode) ->
+        @errorCode = errorCode
+        @message = message
+        @statusCode = parseInt(statusCode) ? 500
+
+      sendRes: (res) ->
+        res.json @statusCode, { error: { code: @errorCode, message: @message }  }
+
+
 **toDictionary**
 
 Transform an array of object into a dictionary based on the property passed as a second param
@@ -161,7 +175,7 @@ Execute asynchronous functions which take same inputs
       (req, res) ->
         method getRequestParams(req), (err, data) ->
           if err?
-            res.send 500
+            if (err instanceof BFError) then err.sendRes(res) else res.send 500
           else
             if contentType == "application/json"
               res.send data
@@ -254,6 +268,7 @@ Export public methods
 ---------------------
 
     module.exports =
+      error        : bfError
       toDictionary : toDictionary
       has          : has
       amap         : amap
