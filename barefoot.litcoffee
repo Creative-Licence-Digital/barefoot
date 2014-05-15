@@ -149,6 +149,7 @@ Execute asynchronous functions which take same inputs
           params = _.extend params, req[field]
       params.user = req.user if req.user?
       params.flashdata = req.flashdata if req.flashdata?
+      params.ip = req.headers['x-forwarded-for'] ? req.connection.remoteAddress ? req.socket.remoteAddress ? req.connection.socket.remoteAddress
       params
 
 
