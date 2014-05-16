@@ -269,19 +269,20 @@ Export public methods
 ---------------------
 
     module.exports =
-      error        : bfError
-      toDictionary : toDictionary
-      has          : has
-      amap         : amap
-      chain        : chain
-      avoid        : avoid
-      parallel     : parallel
-      webService   : webService
-      webPage      : webPage
-      webPagePost  : webPagePost
-      flashdata    : flashdata
-      memoize      : memoize
-      nothing      : nothing
-      returns      : returns
-      mono         : mono
-      prepare      : prepare
+      error            : bfError
+      toDictionary     : toDictionary
+      has              : has
+      amap             : amap
+      chain            : chain
+      avoid            : avoid
+      parallel         : parallel
+      getRequestParams : getRequestParams
+      webService       : webService
+      webPage          : webPage
+      webPagePost      : webPagePost
+      flashdata        : flashdata
+      memoize          : memoize
+      nothing          : nothing
+      returns          : returns
+      mono             : mono
+      prepare          : prepare
