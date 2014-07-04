@@ -169,6 +169,19 @@ Execute asynchronous functions which take same inputs
 
           res.redirect redirect
 
+**csv**
+
+    csv = (method) ->
+      (req, res) ->
+        params = {}
+        for field in ["body", "query", "params"]
+          if req[field]?
+            params = _.extend params, req[field]
+
+        method params, (err, {name, content}) ->
+          res.set('Content-Type', 'text/csv')
+          res.set('Content-Disposition', "attachment;filename=#{name}.csv")
+          res.send(content)
 
 **webService**
 
@@ -277,6 +290,7 @@ Export public methods
       avoid            : avoid
       parallel         : parallel
       getRequestParams : getRequestParams
+      csv       : csv
       webService       : webService
       webPage          : webPage
       webPagePost      : webPagePost
