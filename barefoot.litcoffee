@@ -191,6 +191,9 @@ Execute asynchronous functions which take same inputs
           if err?
             if (err instanceof BFError) then err.sendRes(res) else res.send 500
           else
+            if data.flashdata?
+              req.flashdata = data.flashdata
+              delete data.flashdata
             if contentType == "application/json"
               res.send data
             else if contentType == "jsonp"
