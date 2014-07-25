@@ -191,7 +191,7 @@ Execute asynchronous functions which take same inputs
           if err?
             if (err instanceof BFError) then err.sendRes(res) else res.send 500
           else
-            if data.flashdata?
+            if data?.flashdata?
               req.flashdata = data.flashdata
               delete data.flashdata
             if contentType == "application/json"
@@ -230,8 +230,9 @@ Execute asynchronous functions which take same inputs
 
     flashdata = ->
       (req, res, next) ->
-        _flashdata = req.session.flashdata
-        delete req.session.flashdata
+        if req?.session?.flashdata?
+          _flashdata = req.session.flashdata
+          delete req.session.flashdata
 
         Object.defineProperty req, "flashdata",
           get: -> _flashdata
