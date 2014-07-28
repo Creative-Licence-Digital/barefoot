@@ -1,6 +1,6 @@
 {
   "name": "barefoot",
-  "version": "0.0.28",
+  "version": "0.0.29",
   "description": "barefoot is a library that assists with large async (web) applications",
   "main": "barefoot.litcoffee",
   "repository": {

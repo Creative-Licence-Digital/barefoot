@@ -161,7 +161,7 @@ Execute asynchronous functions which take same inputs
         method getRequestParams(req), (err, data) ->
 
           if err?
-            res.send 500
+            return if (err instanceof BFError) then err.sendRes(res) else res.send 500
 
           data = {} if not data?
           data.user = req.user if req.user? and not data.user?
