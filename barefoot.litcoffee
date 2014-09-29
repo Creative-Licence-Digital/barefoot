@@ -159,15 +159,30 @@ Execute asynchronous functions which take same inputs
     webPagePost = (method, redirect) ->
       (req, res) ->
         method getRequestParams(req), (err, data) ->
-
           if err?
-            return if (err instanceof BFError) then err.sendRes(res) else res.send 500
-
-          data = {} if not data?
-          data.user = req.user if req.user? and not data.user?
+            error_redirect ?= req.headers.referer || req.url
+            req.flash "error_codes", if err.message then err.message else err
+            correct_data = {}
+            for k, v of data
+              if typeof v isnt "function" and [ "flash", "cookie" ].indexOf(k) is -1
+                correct_data[k] = v
+            req.flash "form_data", correct_data
+            redirect_url = error_redirect
+          else
+            redirect ?= req.url
+            if data?.redirect? 
+              redirect = data.redirect
+            data = {} if not data?
+            data.user = req.user if req.user? and not data.user?
+            redirect_url = redirect
           req.flashdata = data.flashdata if data.flashdata?
-
-          res.redirect redirect
+          #TODO get this code a bit more elegant.
+          final_redirect_url = redirect_url
+          if url_params = final_redirect_url.match /\:[a-zA-Z\-\_]+/g
+            for url_param in url_params
+              param_name = url_param.replace(/\:/g, '')
+              final_redirect_url = final_redirect_url.replace url_param, data[param_name]
+          res.redirect final_redirect_url
 
 **csv**
 
