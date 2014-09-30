@@ -161,12 +161,12 @@ Execute asynchronous functions which take same inputs
         method getRequestParams(req), (err, data) ->
           if err?
             error_redirect ?= req.headers.referer || req.url
-            req.flash "error_codes", if err.message then err.message else err
+            req.flash? "error_codes", if err.message then err.message else err
             correct_data = {}
             for k, v of data
               if typeof v isnt "function" and [ "flash", "cookie" ].indexOf(k) is -1
                 correct_data[k] = v
-            req.flash "form_data", correct_data
+            req.flash? "form_data", correct_data
             redirect_url = error_redirect
           else
             redirect ?= req.url
