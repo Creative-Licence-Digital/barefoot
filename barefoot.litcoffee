@@ -169,7 +169,7 @@ Execute asynchronous functions which take same inputs
             data = {} if not data?
             data.user = req.user if req.user? and not data.user?
             redirect_url = redirect
-          req.flashdata = data.flashdata if data.flashdata?
+          req.flashdata = data.flashdata if data?.flashdata?
           #TODO get this code a bit more elegant.
           final_redirect_url = redirect_url
           if url_params = final_redirect_url.match /\:[a-zA-Z\-\_]+/g
