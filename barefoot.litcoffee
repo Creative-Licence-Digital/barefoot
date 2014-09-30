@@ -156,7 +156,7 @@ Execute asynchronous functions which take same inputs
 
 **webPagePost**
 
-    webPagePost = (method, redirect) ->
+    webPagePost = (method, redirect, error_redirect) ->
       (req, res) ->
         method getRequestParams(req), (err, data) ->
           if err?
