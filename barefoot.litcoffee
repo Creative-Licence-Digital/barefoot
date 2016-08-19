@@ -164,7 +164,7 @@ Execute asynchronous functions which take same inputs
             redirect_url = error_redirect
           else
             redirect ?= req.url
-            if data?.redirect? 
+            if data?.redirect?
               redirect = data.redirect
             data = {} if not data?
             data.user = req.user if req.user? and not data.user?
@@ -182,7 +182,7 @@ Execute asynchronous functions which take same inputs
 
     csv = (method) ->
       (req, res) ->
-        params = {}
+        params = getRequestParams(req)
         for field in ["body", "query", "params"]
           if req[field]?
             params = _.extend params, req[field]
